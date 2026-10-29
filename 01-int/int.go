@@ -1,11 +1,11 @@
 package main
 
 import (
-		"fmt"
-		"math"
-		"errors"
+	"errors"
+	"fmt"
+	"math"
 
-		gonanoid "github.com/matoous/go-nanoid/v2"
+	gonanoid "github.com/matoous/go-nanoid/v2"
 )
 
 var (
@@ -13,7 +13,7 @@ var (
     ErrUnderflow = errors.New("number falls below minimum limit")
 )
 
-const maxInt8 = math.MaxInt8
+const maxUint8 = math.MaxUint8
 
 const (
 	ItemActive		Flag = 1 << iota
@@ -25,21 +25,20 @@ type (
 	Flag 	uint8
 	IDs 	string
 )
+type Inventory struct {
+	ID 			IDs
+	Stock 		uint8
+	ItemFlag 	Flag
+}
 
-func (id *IDs) generateId() (string, error) {
+func generateId() (IDs, error) {
 	alphabet := "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
 
 	generated, err := gonanoid.Generate(alphabet, 5) 
 	
 	if err != nil {
    		return "", fmt.Errorf("cannot generate id: %w", err)
-	}
-
-	return generated, nil
 }
 
-type Inventory struct {
-	ID 			IDs
-	Stock 		int8
-	ItemFlag 	Flag
+	return IDs(generated), nil
 }
