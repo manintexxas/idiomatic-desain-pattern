@@ -42,3 +42,29 @@ func generateId() (IDs, error) {
 
 	return IDs(generated), nil
 }
+
+func NewInventory(stock uint8, flag Flag) (*Inventory, error) {
+	newID, err := generateId()
+	if err != nil {
+		return nil, err
+	}
+
+	return &Inventory{
+			ID: newID,
+			Stock: stock,
+			ItemFlag: flag,
+	}, nil
+}
+
+
+func main() {
+	invt, err := NewInventory(25, ItemActive)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("Berhasil membuat inventory dengan ID: %s\n", invt.ID)
+	fmt.Printf("Berhasil membuat inventory dengan Flag: %08b\n", invt.ItemFlag)
+	
+	
+}
