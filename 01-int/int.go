@@ -5,18 +5,29 @@ import (
 	"fmt"
 	"math"
 	"time"
+	"regexp"
 
 	gonanoid "github.com/matoous/go-nanoid/v2"
 )
 
 var (
-	ErrOverflow    = errors.New("Number exceeds maximum limit")
-	ErrUnderflow   = errors.New("Number falls below minimum limit")
-	ErrEmptyString = errors.New("Input cannot be empty")
-	ErrZeroStock   = errors.New("Out of stock")
-	ErrNotFound    = errors.New("ID not found")
+	ErrOverflow   	 = errors.New("Number exceeds maximum limit")
+	ErrUnderflow  	 = errors.New("Number falls below minimum limit")
+	ErrEmptyString	 = errors.New("Input cannot be empty")
+	ErrInvalidInput  = errors.New("Input is invalid")
+	ErrOutofRange 	 = errors.New("Input out of range")
+	ErrZeroStock   	 = errors.New("Out of stock")
+	ErrNotFound    	 = errors.New("ID not found")
 
-	SetTemplate = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
+	SetTemplate 	 = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
+	layout 			 = "2006-01-02 15:04:05"
+	safeNameRegex 	 = regexp.MustCompile(`^[\p{L}\s'\-]+$`)
+
+	minCharLen		 = 2
+	maxCharLen		 = 50
+
+	minIdLen		 = 3
+	maxIdLen		 = 7
 
 	InventoryDict    = make(map[ID]Inventory, 4)
 	TransactionsDict = make(map[ID]Transactions, 9)
@@ -58,9 +69,12 @@ type Customer struct {
 	IsMember bool
 }
 type Inventory struct {
+	ItemExp  int64
+
 	ItemID   ID
 	ItemName string
 	Stock    uint8
+
 	ItemFlag Flag
 }
 
@@ -126,11 +140,8 @@ func CheckId[V any](prefix Prefix, num int, dict map[ID]V) (ID, error) {
 
 func generateId(prefix Prefix, num int) (ID, error) {
 
-	max := 7
-	min := 3
-
-	if num < min || num > max {
-		return "", fmt.Errorf("Id Number must between %d and %d ", min, max)
+	if num < minIdLen || num > maxIdLen {
+		return "", fmt.Errorf("%w: Id Number must between %d and %d ", ErrOutofRange,minIdLen, maxIdLen)
 	}
 
 	generated, err := gonanoid.Generate(SetTemplate, num)
@@ -229,4 +240,36 @@ func (i *Inventory) ReduceStock(empID ID, custID ID, amount uint8, desc string) 
 	}
 
 	return i.Record(empID, custID, amount, desc, false)
+}
+
+func NewInventory(date string, itemname string, stock uint8, flag Flag) (*Inventory, error) {
+	parsedTime, err := time.Parse(layout, date)
+	if err != nil {
+		return nil, err
+	}
+
+	if !safeNameRegex.MatchString(itemname) {
+		return nil, fmt.Errorf("%w: name contains invalid symbols or emojis", ErrInvalidInput)
+	}
+
+	if len(itemname) > maxCharLen || len(itemname) < minCharLen {
+		return nil, fmt.Errorf("%w: Item name must be between %d and %d character ", ErrOutofRange, minCharLen, maxCharLen)
+	}
+
+	id, err := CheckId(Item, 4, InventoryDict)
+	if err != nil {
+		return nil, err
+	}
+
+	inv := Inventory{
+		ItemExp: parsedTime.Unix(),
+		ItemID: id,
+		ItemName: itemname,
+		Stock: stock,
+		ItemFlag: flag,
+	}
+
+	InventoryDict[id] = inv
+
+	return &inv, nil
 }
