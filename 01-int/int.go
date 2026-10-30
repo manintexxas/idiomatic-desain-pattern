@@ -3,9 +3,10 @@ package main
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"math"
-	"time"
 	"regexp"
+	"time"
 
 	gonanoid "github.com/matoous/go-nanoid/v2"
 )
@@ -189,6 +190,25 @@ func (i *Inventory) Record(empID ID, custID ID, amount uint8, desc string, isAdd
 	return &t, nil
 }
 
+func NameFormat(name string) (string, error) {
+	trimmed := strings.TrimSpace(name)
+
+	if trimmed == "" {
+		return "", fmt.Errorf("%w: Name cannot be empty", ErrInvalidInput)
+	}
+
+	if !safeNameRegex.MatchString(name) {
+		return "", fmt.Errorf("%w: name contains invalid symbols or emojis", ErrInvalidInput)
+	}
+
+	if len(name) > maxCharLen || len(name) < minCharLen {
+		return "", fmt.Errorf("%w: Item name must be between %d and %d character ", ErrOutofRange, minCharLen, maxCharLen)
+	}
+
+	return name, nil
+
+}
+
 func (i *Inventory) AddStock(receiver ID, amount uint8, desc string) (*Transactions, error) {
 
 	if !IsExistID(EmployeeDict, receiver) {
@@ -248,13 +268,10 @@ func NewInventory(date string, itemname string, stock uint8, flag Flag) (*Invent
 		return nil, err
 	}
 
-	if !safeNameRegex.MatchString(itemname) {
-		return nil, fmt.Errorf("%w: name contains invalid symbols or emojis", ErrInvalidInput)
-	}
-
-	if len(itemname) > maxCharLen || len(itemname) < minCharLen {
-		return nil, fmt.Errorf("%w: Item name must be between %d and %d character ", ErrOutofRange, minCharLen, maxCharLen)
-	}
+	cleanedName, err := NameFormat(itemname) 
+	if err != nil {
+		return nil, err
+	} 
 
 	id, err := CheckId(Item, 4, InventoryDict)
 	if err != nil {
@@ -262,10 +279,10 @@ func NewInventory(date string, itemname string, stock uint8, flag Flag) (*Invent
 	}
 
 	inv := Inventory{
-		ItemExp: parsedTime.Unix(),
-		ItemID: id,
-		ItemName: itemname,
-		Stock: stock,
+		ItemExp:  parsedTime.Unix(),
+		ItemID:	  id,
+		ItemName: cleanedName,
+		Stock:    stock,
 		ItemFlag: flag,
 	}
 
@@ -273,3 +290,25 @@ func NewInventory(date string, itemname string, stock uint8, flag Flag) (*Invent
 
 	return &inv, nil
 }
+
+func NewEmployee(name string) (*Employee, error) {
+	cleanedName, err := NameFormat(name) 
+	if err != nil {
+		return nil, err
+	} 
+
+	id, err := CheckId(Item, 4, InventoryDict)
+	if err != nil {
+		return nil, err
+	}
+
+	emp := Employee{
+		EmpID: id,
+		EmpName: cleanedName,
+	}
+
+	EmployeeDict[id] = emp
+
+	return &emp, nil
+}
+
