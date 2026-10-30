@@ -83,15 +83,33 @@ func Epoch() int64 {
 	return time.Now().Unix()
 }
 
-func TimeFormat(sec int64) string {
+func GetTimestamp(sec int64) string {
 	time := time.Unix(sec, 0)
 
 	return time.Format("2006-01-02 15:04:05")
 }
 
-func IsExist[V any](dict map[ID]V, id ID) bool {
+func IsExistID[V any](dict map[ID]V, id ID) bool {
 	_, exists := dict[id]
 	return exists
+}
+
+func CheckId[V any](prefix Prefix, num int, dict map[ID]V) (ID, error) {
+	var id ID
+	var err error
+
+	for {
+		id, err = generateId(prefix, num)
+		if err != nil {
+			return "", err
+		}
+
+		if !IsExistID(dict, id) {
+			break
+		}
+	}
+
+	return  id, err
 }
 
 func generateId(prefix Prefix, num int) (ID, error) {
@@ -114,54 +132,32 @@ func generateId(prefix Prefix, num int) (ID, error) {
 	return ID(fullid), nil
 }
 
-func (i *Inventory) AddStock(receiver ID, num uint8, desc string) (*Transactions, error) {
+func (i *Inventory) Record(empID ID, custID ID, amount uint8, desc string, isAdd bool) (*Transactions, error) {
+	id, err := CheckId(Item, 4, TransactionsDict)
 
-	if num < MinUint8 {
-		return nil, fmt.Errorf("%w: Amount cannot be negative number", ErrUnderflow)
+	if err != nil {
+		return nil, err
 	}
 
-	if num > MaxUint8 {
-		return nil, fmt.Errorf("%w: Amount out of limit ( 255 )", ErrOverflow)
+	currentStock := i.Stock
+
+	if isAdd {
+		i.Stock += amount
+		custID = "_"
+
+	} else {
+		i.Stock -= amount
 	}
-
-	if desc == "" {
-		return nil, fmt.Errorf("%w: Please write somethings", ErrEmptyString)
-	}
-
-	if i.Stock > MaxUint8-num {
-		return nil, fmt.Errorf("%w: Stock out of limit", ErrOverflow)
-	}
-
-	if !IsExist(EmployeeDict, receiver) {
-		return nil, fmt.Errorf("%w: Reciever id is not valid", ErrEmptyString)
-	}
-
-	var id ID
-	var err error
-
-	for {
-		id, err = generateId(Trans, 4)
-		if err != nil {
-			return nil, err
-		}
-
-		if !IsExist(TransactionsDict, id) {
-			break
-		}
-	}
-
-	curStock := i.Stock
-	i.Stock += num
 
 	t := Transactions{
 		Timestamp: Epoch(),
 		TransID:   id,
 		ItemID:    i.ItemID,
-		EmpID:     receiver,
+		EmpID:     empID,
 		CustID:    "-",
 		Desc:      desc,
-		Amount:    num,
-		CurStock:  curStock,
+		Amount:    amount,
+		CurStock:  currentStock,
 		NowStock:  i.Stock,
 	}
 
@@ -170,30 +166,38 @@ func (i *Inventory) AddStock(receiver ID, num uint8, desc string) (*Transactions
 	return &t, nil
 }
 
-func (i *Inventory) ReduceStock(cust ID, emp ID, num uint8, desc string) (*Transactions, error) {
+func (i *Inventory) AddStock(receiver ID, amount uint8, desc string) (*Transactions, error) {
+
+	if desc == "" {
+		return nil, fmt.Errorf("%w: Please write somethings", ErrEmptyString)
+	}
+
+	if i.Stock > MaxUint8 - amount {
+		return nil, fmt.Errorf("%w: Stock out of limit", ErrOverflow)
+	}
+
+	if !IsExistID(EmployeeDict, receiver) {
+		return nil, fmt.Errorf("%w: Reciever id is not valid", ErrEmptyString)
+	}
+
+	return i.Record(receiver, "", amount, desc, true)
+}
+
+func (i *Inventory) ReduceStock(empID ID, custID ID, amount uint8, desc string) (*Transactions, error) {
 
 	if i.Stock == 0 {
 		return nil, fmt.Errorf("%w: %s stock is empty", ErrZeroStock, i.ItemName)
 	}
 
-	if num < MinUint8 {
-		return nil, fmt.Errorf("%w: Amount cannot be negative number", ErrUnderflow)
-	}
-
-	if num > MaxUint8 {
-		return nil, fmt.Errorf("%w: Amount out of limit ( 255 )", ErrOverflow)
-	}
-
-	if i.Stock < num {
+	if i.Stock < amount {
 		return nil, fmt.Errorf("%w: Amount out of limit", ErrOverflow)
 	}
 
-	
-	if !IsExist(CustDict, cust){
+	if !IsExistID(CustDict, custID){
 		return nil, fmt.Errorf("%w: Customer id not exist", ErrNotFound)
 	}
 
-	if !IsExist(EmployeeDict, emp){
+	if !IsExistID(EmployeeDict, empID){
 		return nil, fmt.Errorf("%w: Employee id not exist", ErrNotFound)
 	}
 
@@ -201,36 +205,5 @@ func (i *Inventory) ReduceStock(cust ID, emp ID, num uint8, desc string) (*Trans
 		desc = "Normal Transaction"
 	}
 
-	var id ID
-	var err error
-
-	for {
-		id, err = generateId(Trans, 4)
-		if err != nil {
-			return nil, err
-		}
-
-		if !IsExist(TransactionsDict, id) {
-			break
-		}
-	}
-
-	curStock := i.Stock
-	i.Stock -= num
-
-	t := Transactions{
-		Timestamp: Epoch(),
-		TransID:   id,
-		ItemID:    i.ItemID,
-		EmpID:     emp,
-		CustID:    cust,
-		Desc:      desc,
-		Amount:    num,
-		CurStock:  curStock,
-		NowStock:  i.Stock,
-	}
-
-	TransactionsDict[id] = t
-
-	return &t, nil
+	return i.Record(empID, custID, amount, desc, false)
 }
