@@ -303,12 +303,34 @@ func NewEmployee(name string) (*Employee, error) {
 	}
 
 	emp := Employee{
-		EmpID: id,
+		EmpID: 	 id,
 		EmpName: cleanedName,
 	}
 
 	EmployeeDict[id] = emp
 
 	return &emp, nil
+}
+
+func NewCustomer(name string, member bool) (*Customer, error) {
+	cleanedName, err := NameFormat(name) 
+	if err != nil {
+		return nil, err
+	} 
+
+	id, err := CheckId(Item, 4, InventoryDict)
+	if err != nil {
+		return nil, err
+	}
+
+	cst := Customer{
+		CustID:   id,
+		CustName: cleanedName,
+		IsMember: member,
+	}
+
+	CustDict[id] = cst
+
+	return &cst, nil
 }
 
