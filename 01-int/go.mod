@@ -1,4 +1,4 @@
-module 01-int
+module dict
 
 go 1.27.1
 

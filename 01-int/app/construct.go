@@ -3,27 +3,25 @@ package app
 import (
 	"time"
 
-    "dict/model"
-    "dict/utils"
 )
 
-func NewInventory(date string, itemname string, stock uint8, flag model.Flag) (*model.Inventory, error) {
-	parsedTime, err := time.Parse(model.Layout, date)
+func NewInventory(date string, itemname string, stock uint8, flag Flag) (*Inventory, error) {
+	parsedTime, err := time.Parse(Layout, date)
 	if err != nil {
 		return nil, err
 	}
 
-	cleanedName, err := utils.NameFormat(itemname)
+	cleanedName, err := NameFormat(itemname)
 	if err != nil {
 		return nil, err
 	}
 
-	id, err := utils.CheckId(model.Item, 4, model.InventoryDict)
+	id, err := CheckId(Item, 4, InventoryDict)
 	if err != nil {
 		return nil, err
 	}
 
-	inv := model.Inventory{
+	inv := Inventory{
 		ItemExp:  parsedTime.Unix(),
 		ItemID:   id,
 		ItemName: cleanedName,
@@ -31,50 +29,51 @@ func NewInventory(date string, itemname string, stock uint8, flag model.Flag) (*
 		ItemFlag: flag,
 	}
 
-	model.InventoryDict[id] = inv
+	InventoryDict[id] = inv
 
 	return &inv, nil
 }
 
-func NewEmployee(name string) (*model.Employee, error) {
-	cleanedName, err := utils.NameFormat(name)
+func NewEmployee(name string) (*Employee, error) {
+	cleanedName, err := NameFormat(name)
 	if err != nil {
 		return nil, err
 	}
 
-	id, err := utils.CheckId(model.Emp, 4, model.InventoryDict)
+	id, err := CheckId(Emp, 4, InventoryDict)
 	if err != nil {
 		return nil, err
 	}
 
-	emp := model.Employee{
+	emp := Employee{
 		EmpID:   id,
 		EmpName: cleanedName,
 	}
 
-	model.EmployeeDict[id] = emp
+	EmployeeDict[id] = emp
 
 	return &emp, nil
 }
 
-func NewCustomer(name string, member bool) (*model.Customer, error) {
-	cleanedName, err := utils.NameFormat(name)
+func NewCustomer(name string, member bool) (*Customer, error) {
+	cleanedName, err := NameFormat(name)
 	if err != nil {
 		return nil, err
 	}
 
-	id, err := utils.CheckId(model.Cust, 4, model.InventoryDict)
+	id, err := CheckId(Cust, 4, InventoryDict)
 	if err != nil {
 		return nil, err
 	}
 
-	cst := model.Customer{
+	cst := Customer{
 		CustID:   id,
 		CustName: cleanedName,
 		IsMember: member,
 	}
 
-	model.CustDict[id] = cst
+	CustDict[id] = cst
 
 	return &cst, nil
 }
+
