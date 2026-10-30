@@ -2,7 +2,6 @@ package app
 
 import (
 	"time"
-
 )
 
 func NewInventory(date string, itemname string, stock uint8, flag Flag) (*Inventory, error) {
@@ -40,7 +39,7 @@ func NewEmployee(name string) (*Employee, error) {
 		return nil, err
 	}
 
-	id, err := CheckId(Emp, 4, InventoryDict)
+	id, err := CheckId(Emp, 4, EmployeeDict)
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +60,7 @@ func NewCustomer(name string, member bool) (*Customer, error) {
 		return nil, err
 	}
 
-	id, err := CheckId(Cust, 4, InventoryDict)
+	id, err := CheckId(Cust, 4, CustDict)
 	if err != nil {
 		return nil, err
 	}
@@ -76,4 +75,3 @@ func NewCustomer(name string, member bool) (*Customer, error) {
 
 	return &cst, nil
 }
-
