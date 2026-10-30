@@ -89,6 +89,18 @@ func GetTimestamp(sec int64) string {
 	return time.Format("2006-01-02 15:04:05")
 }
 
+func (i *Inventory) IsActive() bool {
+	return (i.ItemFlag & ItemActive) != 0
+}
+
+func (i *Inventory) IsResticted() bool {
+	return (i.ItemFlag & ItemRestricted) != 0
+}
+
+func (i *Inventory) IsExpired() bool {
+	return (i.ItemFlag & ItemExpired) != 0
+}
+
 func IsExistID[V any](dict map[ID]V, id ID) bool {
 	_, exists := dict[id]
 	return exists
@@ -109,7 +121,7 @@ func CheckId[V any](prefix Prefix, num int, dict map[ID]V) (ID, error) {
 		}
 	}
 
-	return  id, err
+	return id, err
 }
 
 func generateId(prefix Prefix, num int) (ID, error) {
@@ -154,7 +166,7 @@ func (i *Inventory) Record(empID ID, custID ID, amount uint8, desc string, isAdd
 		TransID:   id,
 		ItemID:    i.ItemID,
 		EmpID:     empID,
-		CustID:    "-",
+		CustID:    custID,
 		Desc:      desc,
 		Amount:    amount,
 		CurStock:  currentStock,
@@ -168,22 +180,29 @@ func (i *Inventory) Record(empID ID, custID ID, amount uint8, desc string, isAdd
 
 func (i *Inventory) AddStock(receiver ID, amount uint8, desc string) (*Transactions, error) {
 
-	if desc == "" {
-		return nil, fmt.Errorf("%w: Please write somethings", ErrEmptyString)
+	if !IsExistID(EmployeeDict, receiver) {
+		return nil, fmt.Errorf("%w: Reciever id is not valid", ErrEmptyString)
 	}
 
-	if i.Stock > MaxUint8 - amount {
+	if i.Stock > MaxUint8-amount {
 		return nil, fmt.Errorf("%w: Stock out of limit", ErrOverflow)
 	}
 
-	if !IsExistID(EmployeeDict, receiver) {
-		return nil, fmt.Errorf("%w: Reciever id is not valid", ErrEmptyString)
+	if desc == "" {
+		return nil, fmt.Errorf("%w: Please write somethings", ErrEmptyString)
 	}
 
 	return i.Record(receiver, "", amount, desc, true)
 }
 
 func (i *Inventory) ReduceStock(empID ID, custID ID, amount uint8, desc string) (*Transactions, error) {
+	if !IsExistID(CustDict, custID) {
+		return nil, fmt.Errorf("%w: Customer id not exist", ErrNotFound)
+	}
+
+	if !IsExistID(EmployeeDict, empID) {
+		return nil, fmt.Errorf("%w: Employee id not exist", ErrNotFound)
+	}
 
 	if i.Stock == 0 {
 		return nil, fmt.Errorf("%w: %s stock is empty", ErrZeroStock, i.ItemName)
@@ -193,16 +212,20 @@ func (i *Inventory) ReduceStock(empID ID, custID ID, amount uint8, desc string) 
 		return nil, fmt.Errorf("%w: Amount out of limit", ErrOverflow)
 	}
 
-	if !IsExistID(CustDict, custID){
-		return nil, fmt.Errorf("%w: Customer id not exist", ErrNotFound)
-	}
-
-	if !IsExistID(EmployeeDict, empID){
-		return nil, fmt.Errorf("%w: Employee id not exist", ErrNotFound)
-	}
-
 	if desc == "" {
 		desc = "Normal Transaction"
+	}
+	
+	if !(i.IsActive() || i.IsResticted()) {
+		return nil, fmt.Errorf("%w: %s is expired", ErrZeroStock, i.ItemName)
+	}
+
+	if i.IsResticted() {
+		cust := CustDict[custID]
+
+		if !cust.IsMember {
+			return nil, fmt.Errorf("%w: Item member only", ErrZeroStock)
+		}
 	}
 
 	return i.Record(empID, custID, amount, desc, false)
