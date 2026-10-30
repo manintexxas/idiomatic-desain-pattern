@@ -10,16 +10,18 @@ import (
 )
 
 var (
-	ErrOverflow  	 = errors.New("Number exceeds maximum limit")
-	ErrUnderflow 	 = errors.New("Number falls below minimum limit")
-	ErrEmptyString 	 = errors.New("Input cannot be empty")
+	ErrOverflow    = errors.New("Number exceeds maximum limit")
+	ErrUnderflow   = errors.New("Number falls below minimum limit")
+	ErrEmptyString = errors.New("Input cannot be empty")
+	ErrZeroStock   = errors.New("Out of stock")
+	ErrNotFound    = errors.New("ID not found")
 
-	SetTemplate 	 = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
+	SetTemplate = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
 
-	InventoryDict 	 = make(map[ID]Inventory, 4)
+	InventoryDict    = make(map[ID]Inventory, 4)
 	TransactionsDict = make(map[ID]Transactions, 9)
-	EmployeeDict 	 = make(map[ID]Employee, 2)
-	CustDict 	  	 = make(map[ID]Customer, 4)
+	EmployeeDict     = make(map[ID]Employee, 2)
+	CustDict         = make(map[ID]Customer, 4)
 )
 
 const (
@@ -34,8 +36,8 @@ const (
 	Emp   Prefix = "EMP-"
 	Cust  Prefix = "CST-"
 
-	MaxUint8 	 = math.MaxUint8
-	MinUint8	 = 0
+	MaxUint8 = math.MaxUint8
+	MinUint8 = 0
 )
 
 type (
@@ -45,12 +47,12 @@ type (
 )
 
 type Employee struct {
-	EmpID	ID
-	EmpName	string
+	EmpID   ID
+	EmpName string
 }
 
 type Customer struct {
-	CustID	 ID
+	CustID   ID
 	CustName string
 
 	IsMember bool
@@ -112,67 +114,123 @@ func generateId(prefix Prefix, num int) (ID, error) {
 	return ID(fullid), nil
 }
 
-func (i *Inventory) AddStock (num uint8, desc string) (*Transactions, error) {
+func (i *Inventory) AddStock(receiver ID, num uint8, desc string) (*Transactions, error) {
 
-		if num < MinUint8 {
-			return nil, fmt.Errorf("%w: Amount cannot be negative number", ErrUnderflow)
-		}
-
-		if num > MaxUint8 {
-			return nil, fmt.Errorf("%w: Amount out of limit ( 255 )", ErrOverflow)
-		}
-
-		if desc == "" {
-			return nil, fmt.Errorf("%w: Please write somethings", ErrEmptyString)
-		}
-		
-		if i.Stock > MaxUint8 - num {
-			return nil, fmt.Errorf("%w: Stock out of limit", ErrOverflow)
-		}
-
-		curStock := i.Stock
-		i.Stock += num
-
-		var id ID
-		var err error
-		
-		for {
-			id, err = generateId(Trans, 4)
-			if err != nil {
-				return nil, err
-			}
-
-			if !IsExist(TransactionsDict, id) {
-				break
-			}
-		}
-
-		t := Transactions{
-			Timestamp: Epoch(),
-			TransID: 	id,
-			ItemID: 	i.ItemID,
-			EmpID: 		"-",
-			CustID: 	"-",
-			Desc: 		desc,
-			Amount: 	num,
-			CurStock: 	curStock,
-			NowStock: 	i.Stock,
-		}
-
-		TransactionsDict[id] = t
-
-		return &t, nil
-}
-
-
-func main() {
-	tran := Transactions{
-		Timestamp: Epoch(),
+	if num < MinUint8 {
+		return nil, fmt.Errorf("%w: Amount cannot be negative number", ErrUnderflow)
 	}
 
-	times := time.Unix(tran.Timestamp, 0)
+	if num > MaxUint8 {
+		return nil, fmt.Errorf("%w: Amount out of limit ( 255 )", ErrOverflow)
+	}
 
-	formattedDate := times.Format("2006-01-02 15:04:05")
+	if desc == "" {
+		return nil, fmt.Errorf("%w: Please write somethings", ErrEmptyString)
+	}
+
+	if i.Stock > MaxUint8-num {
+		return nil, fmt.Errorf("%w: Stock out of limit", ErrOverflow)
+	}
+
+	if !IsExist(EmployeeDict, receiver) {
+		return nil, fmt.Errorf("%w: Reciever id is not valid", ErrEmptyString)
+	}
+
+	var id ID
+	var err error
+
+	for {
+		id, err = generateId(Trans, 4)
+		if err != nil {
+			return nil, err
+		}
+
+		if !IsExist(TransactionsDict, id) {
+			break
+		}
+	}
+
+	curStock := i.Stock
+	i.Stock += num
+
+	t := Transactions{
+		Timestamp: Epoch(),
+		TransID:   id,
+		ItemID:    i.ItemID,
+		EmpID:     receiver,
+		CustID:    "-",
+		Desc:      desc,
+		Amount:    num,
+		CurStock:  curStock,
+		NowStock:  i.Stock,
+	}
+
+	TransactionsDict[id] = t
+
+	return &t, nil
+}
+
+func (i *Inventory) ReduceStock(cust ID, emp ID, num uint8, desc string) (*Transactions, error) {
+
+	if i.Stock == 0 {
+		return nil, fmt.Errorf("%w: %s stock is empty", ErrZeroStock, i.ItemName)
+	}
+
+	if num < MinUint8 {
+		return nil, fmt.Errorf("%w: Amount cannot be negative number", ErrUnderflow)
+	}
+
+	if num > MaxUint8 {
+		return nil, fmt.Errorf("%w: Amount out of limit ( 255 )", ErrOverflow)
+	}
+
+	if i.Stock < num {
+		return nil, fmt.Errorf("%w: Amount out of limit", ErrOverflow)
+	}
+
 	
-	fmt.Printf("Format Tanggal: %s\n", formattedDate)
+	if !IsExist(CustDict, cust){
+		return nil, fmt.Errorf("%w: Customer id not exist", ErrNotFound)
+	}
+
+	if !IsExist(EmployeeDict, emp){
+		return nil, fmt.Errorf("%w: Employee id not exist", ErrNotFound)
+	}
+
+	if desc == "" {
+		desc = "Normal Transaction"
+	}
+
+	var id ID
+	var err error
+
+	for {
+		id, err = generateId(Trans, 4)
+		if err != nil {
+			return nil, err
+		}
+
+		if !IsExist(TransactionsDict, id) {
+			break
+		}
+	}
+
+	curStock := i.Stock
+	i.Stock -= num
+
+	t := Transactions{
+		Timestamp: Epoch(),
+		TransID:   id,
+		ItemID:    i.ItemID,
+		EmpID:     emp,
+		CustID:    cust,
+		Desc:      desc,
+		Amount:    num,
+		CurStock:  curStock,
+		NowStock:  i.Stock,
+	}
+
+	TransactionsDict[id] = t
+
+	return &t, nil
 }
