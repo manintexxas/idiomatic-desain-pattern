@@ -89,4 +89,26 @@ func generateId(prefix Prefix, num int) (ID, error) {
 	return ID(fullid), nil
 }
 
+func (i *Inventory) AddStock (num uint8, desc string) (*Transactions, error) {
+	if i.Stock > MaxUint8 - num {
+		return nil, fmt.Errorf("%w: Must be at least under 255", ErrOverflow)
+	}
+	
+	id, err := generateId(Trans, 4)
+	if err != nil {
+		return nil, err
+	}
 
+	curStock := i.Stock
+	i.Stock += num
+
+	return &Transactions{
+		Timestamp: 	0,
+		TransID: 	id,
+		ItemID: 	i.ItemID,
+		Desc: 		desc,
+		Amount: 	num,
+		CurStock: 	curStock,
+		NowStock: 	i.Stock,
+	}, nil
+}
