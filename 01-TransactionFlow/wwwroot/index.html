@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>THE BENDS // TERMINAL SYSTEM</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="bends-screen">
+  <div class="tape-grid-overlay"></div>
+
+  <header class="top-nav">
+    <div class="brand-box">
+      <span class="brand-title">THE_BENDS//SYS</span>
+      <span class="brand-sub">ANALOG_INVENTORY_UNIT_1995</span>
+    </div>
+    <nav class="nav-links">
+      <button class="nav-btn active" data-tab="tab-cashier">[1] KASIR</button>
+      <button class="nav-btn" data-tab="tab-inbound">[2] INBOUND</button>
+      <button class="nav-btn" data-tab="tab-accounts">[3] CRUD ACCOUNTS</button>
+      <button class="nav-btn" data-tab="tab-transactions">[4] LOG TRANSAKSI</button>
+      <button class="nav-btn" data-tab="tab-inventory">[5] INVENTORY SEARCH</button>
+    </nav>
+  </header>
+
+  <main class="viewport">
+    <section id="tab-cashier" class="tab-content active">
+      <div class="section-title">
+        <h2>// 01. KASIR (OUTBOUND STOCK REDUCTION)</h2>
+      </div>
+      <div class="panel-box">
+        <form id="form-reduce-stock" class="retro-form">
+          <div class="field-group">
+            <label>PILIH BARANG (INVENTORY)</label>
+            <select id="reduce-inv-dropdown" required></select>
+          </div>
+          <div class="field-group">
+            <label>EMPLOYEE (KASIR)</label>
+            <select id="reduce-emp-id" required></select>
+          </div>
+          <div class="field-group">
+            <label>CUSTOMER</label>
+            <select id="reduce-cust-id" required></select>
+          </div>
+          <div class="field-group">
+            <label>AMOUNT (JUMLAH KELUAR)</label>
+            <input type="number" id="reduce-amount" min="1" value="1" required>
+          </div>
+          <div class="field-group">
+            <label>DESKRIPSI TRANSAKSI</label>
+            <input type="text" id="reduce-desc" placeholder="Catatan transaksi penjualan...">
+          </div>
+          <button type="submit" class="btn-industrial">PROSES OUTBOUND</button>
+        </form>
+      </div>
+    </section>
+
+    <section id="tab-inbound" class="tab-content">
+      <div class="section-title">
+        <h2>// 02. INBOUND (ADD STOCK)</h2>
+      </div>
+      <div class="panel-box">
+        <form id="form-add-stock" class="retro-form">
+          <div class="field-group">
+            <label>PILIH BARANG (INVENTORY)</label>
+            <select id="add-inv-dropdown" required></select>
+          </div>
+          <div class="field-group">
+            <label>RECEIVER (EMPLOYEE)</label>
+            <select id="add-receiver-id" required></select>
+          </div>
+          <div class="field-group">
+            <label>AMOUNT (JUMLAH MASUK)</label>
+            <input type="number" id="add-amount" min="1" value="1" required>
+          </div>
+          <div class="field-group">
+            <label>DESKRIPSI PENERIMAAN</label>
+            <input type="text" id="add-desc" placeholder="Catatan penerimaan stok...">
+          </div>
+          <button type="submit" class="btn-industrial">PROSES INBOUND</button>
+        </form>
+      </div>
+    </section>
+
+    <section id="tab-accounts" class="tab-content">
+      <div class="section-title">
+        <h2>// 03. CRUD ACCOUNTS (EMPLOYEE & CUSTOMER)</h2>
+      </div>
+      <div class="grid-2col">
+        <div class="panel-box">
+          <h3>EMPLOYEE MANAGEMENT</h3>
+          <form id="form-create-employee" class="retro-form">
+            <div class="field-group">
+              <label>NAMA PEGAWAI</label>
+              <input type="text" id="emp-name" placeholder="Nama..." required>
+            </div>
+            <button type="submit" class="btn-industrial">+ TAMBAH EMPLOYEE</button>
+          </form>
+          <div class="table-container">
+            <table class="retro-table">
+              <thead>
+                <tr>
+                  <th>ID (LOCKED)</th>
+                  <th>NAMA</th>
+                  <th>AKSI</th>
+                </tr>
+              </thead>
+              <tbody id="employee-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="panel-box">
+          <h3>CUSTOMER MANAGEMENT</h3>
+          <form id="form-create-customer" class="retro-form">
+            <div class="field-group">
+              <label>NAMA PELANGGAN</label>
+              <input type="text" id="cust-name" placeholder="Nama..." required>
+            </div>
+            <div class="field-group checkbox-row">
+              <input type="checkbox" id="cust-member">
+              <label for="cust-member">STATUS MEMBER</label>
+            </div>
+            <button type="submit" class="btn-industrial">+ TAMBAH CUSTOMER</button>
+          </form>
+          <div class="table-container">
+            <table class="retro-table">
+              <thead>
+                <tr>
+                  <th>ID (LOCKED)</th>
+                  <th>NAMA</th>
+                  <th>MEMBER</th>
+                  <th>AKSI</th>
+                </tr>
+              </thead>
+              <tbody id="customer-table-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-transactions" class="tab-content">
+      <div class="section-title">
+        <h2>// 04. LOG TRANSAKSI</h2>
+        <button id="btn-refresh-tx" class="btn-subtle">REFRESH LOG</button>
+      </div>
+      <div class="panel-box">
+        <div class="table-container">
+          <table class="retro-table">
+            <thead>
+              <tr>
+                <th>TRANS ID</th>
+                <th>ITEM ID</th>
+                <th>EMP ID</th>
+                <th>CUST ID</th>
+                <th>AMOUNT</th>
+                <th>TIMESTAMP</th>
+                <th>DESC</th>
+              </tr>
+            </thead>
+            <tbody id="transactions-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-inventory" class="tab-content">
+      <div class="section-title">
+        <h2>// 05. INVENTORY SEARCH & CATALOG</h2>
+        <button id="btn-open-create-inv" class="btn-industrial">+ BUAT ITEM BARU</button>
+      </div>
+      <div class="search-box">
+        <input type="text" id="inventory-search-input" placeholder="Cari berdasarkan nama barang atau ID..." class="retro-input">
+      </div>
+      <div id="inventory-cards-grid" class="cards-grid"></div>
+    </section>
+  </main>
+
+  <div id="bends-modal" class="modal-overlay hidden">
+    <div class="modal-box">
+      <div class="modal-header">
+        <span id="modal-title">// SYSTEM ALERT</span>
+        <button id="modal-close-btn" class="modal-close">&times;</button>
+      </div>
+      <div id="modal-body" class="modal-content-body"></div>
+    </div>
+  </div>
+
+  <script src="api.js"></script>
+  <script src="components.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
