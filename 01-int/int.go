@@ -157,7 +157,7 @@ func generateId(prefix Prefix, num int) (ID, error) {
 }
 
 func (i *Inventory) Record(empID ID, custID ID, amount uint8, desc string, isAdd bool) (*Transactions, error) {
-	id, err := CheckId(Item, 4, TransactionsDict)
+	id, err := CheckId(Trans, 4, TransactionsDict)
 
 	if err != nil {
 		return nil, err
@@ -297,7 +297,7 @@ func NewEmployee(name string) (*Employee, error) {
 		return nil, err
 	} 
 
-	id, err := CheckId(Item, 4, InventoryDict)
+	id, err := CheckId(Emp, 4, InventoryDict)
 	if err != nil {
 		return nil, err
 	}
@@ -318,7 +318,7 @@ func NewCustomer(name string, member bool) (*Customer, error) {
 		return nil, err
 	} 
 
-	id, err := CheckId(Item, 4, InventoryDict)
+	id, err := CheckId(Cust, 4, InventoryDict)
 	if err != nil {
 		return nil, err
 	}
@@ -333,4 +333,14 @@ func NewCustomer(name string, member bool) (*Customer, error) {
 
 	return &cst, nil
 }
+
+func DeleteData[V any](dict map[ID]V, id ID) error {
+	if !IsExistID(dict, id) {
+		return fmt.Errorf("%w: ID %s tidak ditemukan", ErrNotFound, id)
+	}
+
+	delete(dict, id)
+	return nil
+}
+
 
