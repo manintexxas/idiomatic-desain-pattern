@@ -42,10 +42,6 @@ func (v *ViolationReport) GetErrors(withCount bool) []string {
 			v.SpecialCharViolations},
 
 		{
-			ErrInvalidControlChar,
-			v.ControlCharViolations},
-
-		{
 			ErrDisallowedKeyword,
 			v.KeywordViolations},
 
