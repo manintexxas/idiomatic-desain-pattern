@@ -2,12 +2,18 @@ package app
 
 import (
 	"errors"
+	"github.com/microcosm-cc/bluemonday"
 )
 
 type Flag uint16
 
+var (
+	CharTable [256]Flag
+)
+
 const (
-	FlagAllowLetters Flag = 1 << iota
+	FlagAllowUpperOnly Flag = 1 << iota
+	FlagAllowLowerOnly
 	FlagAllowNumbers
 	FlagAllowWhitespace
 	FlagAllowSymbols
@@ -15,32 +21,46 @@ const (
 )
 
 const (
-	FlagAllowMultibyte Flag = 1 << (iota + 5)
-	FlagAllowHTML
+	FlagAllowKeywords Flag = 1 << (iota + 6)
 	FlagAllowColoring
-	FlagAllowEmoji
+	FlagAllowMultibyte
 	FlagAllowSpecialChar
-	FlagAllowControlChar
-	FlagAllowKeywords
+	FlagAllowEmoji
+	FlagAllowHTML
 	FlagDetectSQLi
 )
 
 const (
-	DefaultPreset  Flag = FlagAllowLetters
+	SentencePreset Flag = FlagAllowUpperOnly | FlagAllowLowerOnly
+	DefaultPreset  Flag = SentencePreset | FlagAllowNumbers | FlagAllowSymbols | FlagAllowWhitespace
 	AdvancedPreset Flag = FlagAllowMultibyte | FlagAllowHTML | FlagAllowColoring | FlagDetectSQLi
 )
+
+type Engine struct {
+	Trie *Trie
+}
+
+func NewEngine() *Engine {
+	return &Engine{
+		Trie: NewTrie(),
+	}
+}
 
 type Config struct {
 	UniversalFlags Flag
 	AdvancedFlags  Flag
 	MaxLength      int
 	MaskingByte    byte
-	BlacklistBytes [][]byte
+	HTMLConfig     *HTMLConfig
+	SQLiConfig     *SQLiConfig
 }
 
-type Engine struct {
-	Config    Config
-	CharTable [256]uint16
+type HTMLConfig struct {
+	Policy *bluemonday.Policy
+}
+
+type SQLiConfig struct {
+	StrictnessLevel int
 }
 
 type ViolationReport struct {
@@ -52,7 +72,6 @@ type ViolationReport struct {
 	HTMLViolations        int
 	ColoringViolations    int
 	SpecialCharViolations int
-	ControlCharViolations int
 	KeywordViolations     int
 	SQLiViolations        int
 	MalformedUnicodeCount int
@@ -72,7 +91,6 @@ var (
 	ErrNumberNotAllowed          = errors.New("Number not allowed")
 	ErrDisallowedKeyword         = errors.New("Text contains blocked keywords")
 	ErrWhitespaceOnly            = errors.New("Input contains only whitespaces")
-	ErrInvalidControlChar        = errors.New("Invalid control character detected")
 	ErrSqlInjectionPattern       = errors.New("Potential SQL injection pattern detected")
 	ErrValidationFailed          = errors.New("Validation failed")
 )
