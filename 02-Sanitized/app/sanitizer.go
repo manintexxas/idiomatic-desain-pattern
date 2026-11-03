@@ -7,40 +7,56 @@ import (
 type Flag uint16
 
 const (
-	FlagAllowLetters    Flag = 1 << iota
-	FlagAllowNumbers                     
-	FlagAllowWhitespace                  
-	FlagAllowSymbols                     
-	FlagEnableAdvanced                   
+	FlagAllowLetters Flag = 1 << iota
+	FlagAllowNumbers
+	FlagAllowWhitespace
+	FlagAllowSymbols
+	FlagEnableAdvanced
 )
 
 const (
-	FlagAllowMultibyte  Flag = 1 << (iota + 5) 
-	FlagAllowHTML                              
-	FlagAllowColoring                          
-	FlagAllowEmoji                             
-	FlagAllowSpecialChar                       
-	FlagAllowControlChar                       
-	FlagAllowKeywords                          
-	FlagDetectSQLi                             
+	FlagAllowMultibyte Flag = 1 << (iota + 5)
+	FlagAllowHTML
+	FlagAllowColoring
+	FlagAllowEmoji
+	FlagAllowSpecialChar
+	FlagAllowControlChar
+	FlagAllowKeywords
+	FlagDetectSQLi
 )
 
 const (
-	DefaultPreset  Flag = FlagAllowLetters | FlagAllowNumbers | FlagAllowWhitespace | FlagAllowSymbols
+	DefaultPreset  Flag = FlagAllowLetters
 	AdvancedPreset Flag = FlagAllowMultibyte | FlagAllowHTML | FlagAllowColoring | FlagDetectSQLi
 )
 
 type Config struct {
-	UniversalFlags Flag     
-	AdvancedFlags  Flag     
-	MaxLength      int      
-	MaskingByte    byte     
-	BlacklistBytes [][]byte 
+	UniversalFlags Flag
+	AdvancedFlags  Flag
+	MaxLength      int
+	MaskingByte    byte
+	BlacklistBytes [][]byte
 }
 
 type Engine struct {
 	Config    Config
 	CharTable [256]uint16
+}
+
+type ViolationReport struct {
+	LetterViolations      int
+	NumberViolations      int
+	SymbolViolations      int
+	WhitespaceViolations  int
+	EmojiViolations       int
+	HTMLViolations        int
+	ColoringViolations    int
+	SpecialCharViolations int
+	ControlCharViolations int
+	KeywordViolations     int
+	SQLiViolations        int
+	MalformedUnicodeCount int
+	TotalViolations       int
 }
 
 var (
@@ -58,4 +74,5 @@ var (
 	ErrWhitespaceOnly            = errors.New("Input contains only whitespaces")
 	ErrInvalidControlChar        = errors.New("Invalid control character detected")
 	ErrSqlInjectionPattern       = errors.New("Potential SQL injection pattern detected")
+	ErrValidationFailed          = errors.New("Validation failed")
 )
