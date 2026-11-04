@@ -13,17 +13,17 @@ var (
 )
 
 const (
-	FlagAllowUpperOnly Flag = 1 << iota
+	FlagAllowUpperOnly 	  Flag = 1 << iota
 	FlagAllowLowerOnly
 	FlagAllowNumbers
 	FlagAllowWhitespace
 	FlagAllowSymbols
+	FlagAllowKeywords
 	FlagEnableAdvanced
 )
 
 const (
-	FlagAllowKeywords Flag = 1 << (iota + 6)
-	FlagAllowColoring
+	FlagAllowColoring		Flag = 1 << (iota + 7)
 	FlagAllowMultibyte
 	FlagAllowSpecialChar
 	FlagAllowEmoji
@@ -56,6 +56,7 @@ type Config struct {
 	UniversalFlags Flag
 	AdvancedFlags  Flag
 	MaxLength      int
+	Cleaned		   bool
 	MaskingByte    byte
 	HTMLConfig     *HTMLConfig
 	SQLiConfig     *SQLiConfig
