@@ -1,8 +1,8 @@
 package app
 
 type TrieNode struct {
-	Node map[rune]*TrieNode
-	End	 bool
+	Node map[byte]*TrieNode
+	IsEnd	 bool
 }
 
 type Trie struct {
@@ -12,57 +12,56 @@ type Trie struct {
 func NewTrie() *Trie {
 	return &Trie {
 		Root: &TrieNode{
-			Node: make(map[rune]*TrieNode),
+			Node: make(map[byte]*TrieNode),
 		},
 	}
 }
 
-func (t *Trie) Insert (word string) {
+func (t *Trie) Insert (b []byte) {
 	current := t.Root
-	for _, ch := range word {
-		if current.Node[ch] == nil {
-			current.Node[ch] = &TrieNode{
-				Node: make(map[rune]*TrieNode),
+	for _, char := range b {
+		if current.Node[char] == nil {
+			current.Node[char] = &TrieNode{
+				Node: make(map[byte]*TrieNode),
 			}
 		}
-		current = current.Node[ch]
+		current = current.Node[char]
 	}
-	current.End = true
+	current.IsEnd = true
 }
 
-func (t *Trie) Search (input string) bool {
-	runes := []rune(input)
-	n := len(runes)
+func (t *Trie) Searchar (b []byte) bool {
+	maxLength := len(b)
 
-	for i := 0; i < n; i++ {
+	for index := 0; index < maxLength; index++ {
 		current := t.Root
-		j := i
+		inner := index
 		matched := false
 
-		for j < n {
-			ch := runes[j]
+		for inner < maxLength {
+			char := b[inner]
 
-			if next, ok := current.Node[ch]; ok {
+			if next, ok := current.Node[char]; ok {
 				current = next
 				matched = true
 
-				if current.End{
+				if current.IsEnd{
 					return true
 				}
 
-				nextJ := j + 1
-				for nextJ < n && (runes[nextJ] == ch || runes[nextJ] == ' '){
-					nextJ++
+				nextInner := inner + 1
+				for nextInner < maxLength && (b[nextInner] == char || b[nextInner] == ' '){
+					nextInner++
 				}
 				
-				j = nextJ
+				inner = nextInner
 
 			} else {
 				break
 			}
 		}
 
-		if matched && current.End {
+		if matched && current.IsEnd {
 			return true
 		}
 	}
