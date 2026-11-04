@@ -1,8 +1,7 @@
 package app
-
 type TrieNode struct {
-	Node map[byte]*TrieNode
-	IsEnd	 bool
+	Children [256]*TrieNode
+	IsEnd    bool
 }
 
 type Trie struct {
@@ -10,61 +9,92 @@ type Trie struct {
 }
 
 func NewTrie() *Trie {
-	return &Trie {
-		Root: &TrieNode{
-			Node: make(map[byte]*TrieNode),
-		},
+	return &Trie{
+		Root: &TrieNode{},
 	}
 }
 
-func (t *Trie) Insert (b []byte) {
+func (t *Trie) Insert(b []byte) {
 	current := t.Root
 	for _, char := range b {
-		if current.Node[char] == nil {
-			current.Node[char] = &TrieNode{
-				Node: make(map[byte]*TrieNode),
-			}
+		if current.Children[char] == nil {
+			current.Children[char] = &TrieNode{}
 		}
-		current = current.Node[char]
+		current = current.Children[char]
 	}
 	current.IsEnd = true
 }
 
-func (t *Trie) Searchar (b []byte) bool {
-	maxLength := len(b)
+func isWordBoundary(b []byte, index int) bool {
+	if index < 0 || index >= len(b) {
+		return true
+	}
 
-	for index := 0; index < maxLength; index++ {
+	char := b[index]
+	return char == ' ' || char == '.' || char == ',' || char == '!' || char == '?' || char == '-'
+}
+
+func (t *Trie) Masking(b []byte, maskByte byte) {
+	length := len(b)
+	index := 0
+
+	for index < length {
 		current := t.Root
-		inner := index
-		matched := false
+		lastEndIndex := -1
+		innerIndex := index
+		
+		var lastChar byte = 0
 
-		for inner < maxLength {
-			char := b[inner]
+		for innerIndex < length {
+			char := b[innerIndex]
 
-			if next, ok := current.Node[char]; ok {
-				current = next
-				matched = true
+			if char == ' '{
+				innerIndex++
+				continue
+			}
 
-				if current.IsEnd{
-					return true
-				}
+			if char == lastChar && current.Children[char] == nil {
+				innerIndex++
+				continue
+			}
 
-				nextInner := inner + 1
-				for nextInner < maxLength && (b[nextInner] == char || b[nextInner] == ' '){
-					nextInner++
-				}
-				
-				inner = nextInner
-
-			} else {
+			next := current.Children[char]
+			if next == nil {
 				break
+			}
+
+			current = next
+			lastChar = char
+			innerIndex ++
+
+
+			if current.IsEnd{
+				lastEndIndex = innerIndex
 			}
 		}
 
-		if matched && current.IsEnd {
-			return true
+		if lastEndIndex != -1 {
+
+			actualStart := index
+
+			for actualStart < lastEndIndex && isWordBoundary(b, actualStart) {
+				actualStart++
+			}
+
+			start := (actualStart == 0 || isWordBoundary(b, actualStart - 1))
+			end   := (lastEndIndex == length || isWordBoundary(b, lastEndIndex))
+
+			if start && end {
+				for key := actualStart; key < lastEndIndex; key++ {
+					b[key] = maskByte
+				}
+
+				index = lastEndIndex
+			} else {
+				index++
+			}
+		} else {
+			index++
 		}
 	}
-
-	return false
 }
