@@ -2,6 +2,7 @@ package app
 
 import (
 	"errors"
+
 	"github.com/microcosm-cc/bluemonday"
 )
 
@@ -40,9 +41,14 @@ type Engine struct {
 	Trie *Trie
 }
 
-func NewEngine() *Engine {
+func NewEngine(Keyword []string) *Engine {
+	trie := NewTrie()
+	for _, k := range Keyword {
+		trie.Insert([]byte(k))
+	}
+
 	return &Engine{
-		Trie: NewTrie(),
+		Trie: trie,
 	}
 }
 
