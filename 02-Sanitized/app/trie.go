@@ -18,6 +18,10 @@ func NewTrie() *Trie {
 func (t *Trie) Insert(b []byte) {
 	current := t.Root
 	for _, char := range b {
+		if char >= 65 && char <= 90 {
+			char |= 0x20
+		}
+		
 		if current.Children[char] == nil {
 			current.Children[char] = &TrieNode{}
 		}
@@ -32,7 +36,7 @@ func isWordBoundary(b []byte, index int) bool {
 	}
 
 	char := b[index]
-	return char == ' ' || char == '.' || char == ',' || char == '!' || char == '?' || char == '-'
+	return (CharTable[char] & (FlagAllowSymbols | FlagAllowWhitespace)) != 0
 }
 
 func (t *Trie) findMatch(b []byte, index, length int) int {
@@ -49,18 +53,23 @@ func (t *Trie) findMatch(b []byte, index, length int) int {
 			continue
 		}
 
-		if char == lastChar && current.Children[char] == nil {
+		searchChar := char
+		if searchChar >= 65 && searchChar <= 90 {
+			searchChar |= 0x20
+		}
+
+		if searchChar == lastChar && current.Children[searchChar] == nil {
 			innerIndex++
 			continue
 		}
 
-		next := current.Children[char]
+		next := current.Children[searchChar]
 		if next == nil {
 			break
 		}
 
 		current = next
-		lastChar = char
+		lastChar = searchChar
 		innerIndex++
 
 		if current.IsEnd {
@@ -69,6 +78,17 @@ func (t *Trie) findMatch(b []byte, index, length int) int {
 	}
 
 	return lastEndIndex
+}
+
+func (t *Trie) hasMatch (b []byte) bool {
+	length := len(b)
+	for index := 0;index < length;index++{
+		if t.findMatch(b, index, length) != -1 {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (t *Trie) resolveActualStart(b []byte, index, lastEndIndex int) int {
