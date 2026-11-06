@@ -26,32 +26,12 @@ func (v *ViolationReport) GetErrors(withCount bool) []string {
 			v.WhitespaceViolations},
 
 		{
-			ErrEmojiNotAllowed,
-			v.EmojiViolations},
+			ErrUpperNotAllowed,
+			v.UpperViolations},
 
 		{
-			ErrHTMLTagNotAllowed,
-			v.HTMLViolations},
-
-		{
-			ErrColoringNotAllowed,
-			v.ColoringViolations},
-
-		{
-			ErrSpecialCharNotAllowed,
-			v.SpecialCharViolations},
-
-		{
-			ErrDisallowedKeyword,
-			v.KeywordViolations},
-
-		{
-			ErrSqlInjectionPattern,
-			v.SQLiViolations},
-
-		{
-			ErrMalformedUnicode,
-			v.MalformedUnicodeCount},
+			ErrLowerNotAllowed,
+			v.LowerViolations},
 	}
 
 	errs := make([]string, 0, len(rules))
