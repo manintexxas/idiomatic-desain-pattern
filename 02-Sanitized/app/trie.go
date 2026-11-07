@@ -78,7 +78,7 @@ func isWordBoundary(b []byte, index int) bool {
 	return isSymbolOrWhitespace(char) || isNumber(char)
 }
 
-func (t *Trie) findMatch(b []byte, index, length int) int {
+func (t *Trie) findMatch(b []byte, index, length int) (int, int) {
 	current := t.Root
 	lastEndIndex := -1
 	innerIndex := index
@@ -111,14 +111,20 @@ func (t *Trie) findMatch(b []byte, index, length int) int {
 		}
 	}
 
-	return lastEndIndex
+	return lastEndIndex, innerIndex
 }
 
 func (t *Trie) hasMatch (b []byte) bool {
 	length := len(b)
-	for index := 0;index < length;index++{
-		if t.findMatch(b, index, length) != -1 {
+	for index := 0; index < length; {
+		lastEndIndex, innerIndex := t.findMatch(b, index, length)
+		if lastEndIndex != -1 {
 			return true
+		}
+		if innerIndex > index {
+			index = innerIndex
+		} else {
+			index++
 		}
 	}
 
@@ -184,7 +190,7 @@ func (t *Trie) SanitizeOrMaskWithWhitelist(b []byte, maskByte byte, isCleaned bo
 	index := 0
 
 	for index < length {
-		lastEndIndex := t.findMatch(b, index, length)
+		lastEndIndex, innerIndex := t.findMatch(b, index, length)
 
 		if lastEndIndex != -1 {
 			actualStart := t.resolveActualStart(b, index, lastEndIndex)
@@ -206,11 +212,11 @@ func (t *Trie) SanitizeOrMaskWithWhitelist(b []byte, maskByte byte, isCleaned bo
 					index = fullWordEnd
 				} else {
 					if isCleaned {
-						if lastEndIndex < length && b[lastEndIndex] == ' ' {
-							length, index = t.applyRemoval(b, actualStart, lastEndIndex + 1, length)
-						} else {
-							length, index = t.applyRemoval(b, actualStart, lastEndIndex, length)
-						}
+                        if lastEndIndex < length && b[lastEndIndex] == ' ' {
+                            length, index = t.applyRemoval(b, actualStart, lastEndIndex + 1, length)
+                        } else {
+                            length, index = t.applyRemoval(b, actualStart, lastEndIndex, length)
+                        }
 					} else {
 						t.applyMasking(b, actualStart, lastEndIndex, maskByte)
 						index = lastEndIndex
@@ -220,7 +226,11 @@ func (t *Trie) SanitizeOrMaskWithWhitelist(b []byte, maskByte byte, isCleaned bo
 				index++
 			}
 		} else {
-			index++
+			if innerIndex > index {
+				index = innerIndex
+			} else {
+				index++
+			}
 		}
 	}
 
