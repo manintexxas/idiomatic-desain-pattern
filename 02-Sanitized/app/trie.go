@@ -36,7 +36,7 @@ func isWordBoundary(b []byte, index int) bool {
 	}
 
 	char := b[index]
-	return (CharTable[char] & (FlagAllowSymbols | FlagAllowWhitespace)) != 0
+	return isSymbolOrWhitespace(char) || isNumber(char)
 }
 
 func (t *Trie) findMatch(b []byte, index, length int) int {
@@ -46,24 +46,19 @@ func (t *Trie) findMatch(b []byte, index, length int) int {
 	var lastChar byte = 0
 
 	for innerIndex < length {
-		char := b[innerIndex]
+		searchChar := b[innerIndex]
 
-		if char == ' ' {
-			innerIndex++
-			continue
-		}
-
-		searchChar := char
 		if searchChar >= 65 && searchChar <= 90 {
 			searchChar |= 0x20
 		}
 
-		if searchChar == lastChar && current.Children[searchChar] == nil {
+		next := current.Children[searchChar]
+
+		if isSymbolOrWhitespace(searchChar) || isNumber(searchChar) || (searchChar == lastChar && next == nil){
 			innerIndex++
 			continue
 		}
 
-		next := current.Children[searchChar]
 		if next == nil {
 			break
 		}
@@ -99,15 +94,26 @@ func (t *Trie) resolveActualStart(b []byte, index, lastEndIndex int) int {
 	return actualStart
 }
 
-func (t *Trie) isValidBoundary(b []byte, actualStart, lastEndIndex, length int) bool {
+func (t *Trie) isValidBoundary(b []byte, actualStart, lastEndIndex, length int, matchLength int) bool {
 	start := (actualStart == 0 || isWordBoundary(b, actualStart-1))
 	
-	if lastEndIndex == length {
-		return start
+	isAtEnd := (lastEndIndex == length)
+
+	var isNextLetter bool
+	if !isAtEnd {
+		nextChar := b[lastEndIndex]
+		isNextLetter = (nextChar >= 'a' && nextChar <= 'z') || (nextChar >= 'A' && nextChar <= 'Z')
 	}
 
-	nextChar := b[lastEndIndex]
-	isNextLetter := (nextChar >= 'a' && nextChar <= 'z') || (nextChar >= 'A' && nextChar <= 'Z')
+	if matchLength <= 3 {
+		if isNextLetter{
+			return false
+		}
+	}
+
+	if isAtEnd {
+		return start
+	}
 
 	if isNextLetter {
 		return true
@@ -119,6 +125,11 @@ func (t *Trie) isValidBoundary(b []byte, actualStart, lastEndIndex, length int) 
 
 func (t *Trie) applyMasking(b []byte, start, end int, maskByte byte) {
 	for key := start; key < end; key++ {
+
+		if isSymbolOrWhitespace(b[key]) {
+			continue
+		}
+
 		b[key] = maskByte
 	}
 }
@@ -138,10 +149,15 @@ func (t *Trie) SanitizeOrMask(b []byte, maskByte byte, isCleaned bool) []byte {
 
 		if lastEndIndex != -1 {
 			actualStart := t.resolveActualStart(b, index, lastEndIndex)
+			matchLength := lastEndIndex - actualStart
 
-			if t.isValidBoundary(b, actualStart, lastEndIndex, length) {
+			if t.isValidBoundary(b, actualStart, lastEndIndex, length, matchLength) {
 				if isCleaned {
-					length, index = t.applyRemoval(b, actualStart, lastEndIndex, length)
+					if lastEndIndex < length && b[lastEndIndex] == ' ' {
+						length, index = t.applyRemoval(b, actualStart, lastEndIndex + 1, length)
+					} else {
+						length, index = t.applyRemoval(b, actualStart, lastEndIndex, length)
+					}
 				} else {
 					t.applyMasking(b, actualStart, lastEndIndex, maskByte)
 					index = lastEndIndex
