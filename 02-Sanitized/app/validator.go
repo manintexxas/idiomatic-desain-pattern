@@ -1,5 +1,25 @@
 package app
 
+func isSymbol(b byte) bool {
+	return (CharTable[b] & FlagAllowSymbols) != 0
+}
+
+func isWhiteSpace(b byte) bool {
+	return (CharTable[b] & FlagAllowWhitespace) != 0
+}
+
+func isNumber(b byte) bool {
+	return (CharTable[b] & FlagAllowNumbers) != 0
+}
+
+func isAlpha(b byte) bool {
+	return (CharTable[b] & (FlagAllowUpperOnly & FlagAllowLowerOnly)) != 0
+}
+
+func isSymbolOrWhitespace(b byte) bool {
+	return isSymbol(b) || isWhiteSpace(b)
+}
+
 func (c *Config) DefaultMaskingByte () {
 	if (c.UniversalFlags & FlagAllowSymbols) == 0 { 
 		c.MaskingByte = 'x'
