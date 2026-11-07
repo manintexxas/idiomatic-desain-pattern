@@ -30,6 +30,45 @@ func (t *Trie) Insert(b []byte) {
 	current.IsEnd = true
 }
 
+type WhitelistTrie struct {
+	Root *TrieNode
+}
+
+func NewWhitelistTrie() *WhitelistTrie {
+	return &WhitelistTrie{
+		Root: &TrieNode{},
+	}
+}
+
+func (w *WhitelistTrie) Insert(b []byte) {
+	current := w.Root
+	for _, char := range b {
+		if char >= 65 && char <= 90 {
+			char |= 0x20
+		}
+		if current.Children[char] == nil {
+			current.Children[char] = &TrieNode{}
+		}
+		current = current.Children[char]
+	}
+	current.IsEnd = true
+}
+
+func (w *WhitelistTrie) IsWhitelisted(b []byte, start, end int) bool {
+	current := w.Root
+	for i := start; i < end; i++ {
+		char := b[i]
+		if char >= 65 && char <= 90 {
+			char |= 0x20
+		}
+		if current.Children[char] == nil {
+			return false
+		}
+		current = current.Children[char]
+	}
+	return current.IsEnd
+}
+
 func isWordBoundary(b []byte, index int) bool {
 	if index < 0 || index >= len(b) {
 		return true
@@ -140,7 +179,7 @@ func (t *Trie) applyRemoval(b []byte, start, end, length int) (int, int) {
 	return newLength, start
 }
 
-func (t *Trie) SanitizeOrMask(b []byte, maskByte byte, isCleaned bool) []byte {
+func (t *Trie) SanitizeOrMaskWithWhitelist(b []byte, maskByte byte, isCleaned bool, whitelist *WhitelistTrie) []byte {
 	length := len(b)
 	index := 0
 
@@ -152,15 +191,30 @@ func (t *Trie) SanitizeOrMask(b []byte, maskByte byte, isCleaned bool) []byte {
 			matchLength := lastEndIndex - actualStart
 
 			if t.isValidBoundary(b, actualStart, lastEndIndex, length, matchLength) {
-				if isCleaned {
-					if lastEndIndex < length && b[lastEndIndex] == ' ' {
-						length, index = t.applyRemoval(b, actualStart, lastEndIndex + 1, length)
-					} else {
-						length, index = t.applyRemoval(b, actualStart, lastEndIndex, length)
+				isWhitelisted := false
+				fullWordEnd := actualStart
+				if whitelist != nil {
+					for fullWordEnd < length && ((b[fullWordEnd] >= 'a' && b[fullWordEnd] <= 'z') || (b[fullWordEnd] >= 'A' && b[fullWordEnd] <= 'Z')) {
+						fullWordEnd++
 					}
+					if whitelist.IsWhitelisted(b, actualStart, fullWordEnd) {
+						isWhitelisted = true
+					}
+				}
+
+				if isWhitelisted {
+					index = fullWordEnd
 				} else {
-					t.applyMasking(b, actualStart, lastEndIndex, maskByte)
-					index = lastEndIndex
+					if isCleaned {
+						if lastEndIndex < length && b[lastEndIndex] == ' ' {
+							length, index = t.applyRemoval(b, actualStart, lastEndIndex + 1, length)
+						} else {
+							length, index = t.applyRemoval(b, actualStart, lastEndIndex, length)
+						}
+					} else {
+						t.applyMasking(b, actualStart, lastEndIndex, maskByte)
+						index = lastEndIndex
+					}
 				}
 			} else {
 				index++
@@ -171,4 +225,8 @@ func (t *Trie) SanitizeOrMask(b []byte, maskByte byte, isCleaned bool) []byte {
 	}
 
 	return b[:length]
+}
+
+func (t *Trie) SanitizeOrMask(b []byte, maskByte byte, isCleaned bool) []byte {
+	return t.SanitizeOrMaskWithWhitelist(b, maskByte, isCleaned, nil)
 }
