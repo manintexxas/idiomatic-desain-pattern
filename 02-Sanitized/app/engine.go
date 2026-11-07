@@ -1,7 +1,7 @@
 package app
 
 func init() {
-    for i := 0; i < 256; i++ {
+    for i := range 256 {
         b := byte(i)
 
         switch {
