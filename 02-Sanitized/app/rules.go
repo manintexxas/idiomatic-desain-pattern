@@ -13,3 +13,19 @@ type CostumeRules struct {
 	ReqNumbers 		int
 	ReqSymbols 		int
 }
+
+func DefaultRules() CostumeRules {
+	return CostumeRules{
+		MinLength: 		0,
+		MaxLength: 		0,
+		MaxUpper: 		-1,
+		MaxLower: 		-1,
+		MaxNumbers: 	-1,
+		MaxSymbols: 	-1,
+		MaxWhiteSpace: 	-1,
+		ReqUpper: 		0,
+		ReqLower: 		0,
+		ReqNumbers: 	0,
+		ReqSymbols: 	0,
+	}
+}
