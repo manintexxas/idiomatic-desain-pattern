@@ -6,25 +6,25 @@ func init() {
 
         switch {
         case b >= 48 && b <= 57:
-            CharTable[b] |= FlagAllowNumbers
+            charTable[b] |= FlagAllowNumbers
 
         case b >= 65 && b <= 90 :
-            CharTable[b] |= FlagAllowUpperOnly
+            charTable[b] |= FlagAllowUpperOnly
 
         case b >= 97 && b <= 122:
-            CharTable[b] |= FlagAllowLowerOnly
+            charTable[b] |= FlagAllowLowerOnly
 
         case (b >= 33 && b <= 47),
             (b >= 58 && b <= 64),
             (b >= 91 && b <= 96),
             (b >= 123 && b <= 126):
-            CharTable[b] |= FlagAllowSymbols
+            charTable[b] |= FlagAllowSymbols
 
         case (b >= 9 && b <= 13), b == 32:
-            CharTable[b] |= FlagAllowWhitespace
+            charTable[b] |= FlagAllowWhitespace
 
         default:
-            CharTable[b] = 0
+            charTable[b] = 0
         }
     }
 }
