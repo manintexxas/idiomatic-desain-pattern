@@ -6,7 +6,7 @@ import (
 
 type ViolationItem struct {
 	Cause	  string `json:"Cause"`
-	Countains int	 `json:"Contains"`
+	Contains int	 `json:"Contains"`
 }
 
 type DetailBreakdown struct {
@@ -25,49 +25,94 @@ func (v *ViolationReport) TriggerMalformedEarlyExit() {
 	}
 }
 
-func (v *ViolationReport) GetErrors(withCount bool) []string {
+func (v *ViolationReport) Reset() {
+	*v = ViolationReport{}
+}
+
+func (v *ViolationReport) GetErrorsDetail() DetailBreakdown {
 	rules := [...]struct {
 		err   error
 		count int
 	}{
-		{
-			ErrNumberNotAllowed,
-			v.NumberViolations},
+		{ErrMalformedUnicode, 
+		v.MalformedUnicodeViolations},
 
-		{
-			ErrSymbolNotAllowed,
-			v.SymbolViolations},
+		{ErrDisallowedKeyword,
+		v.KeywordViolations},
 
-		{
-			ErrWhitespaceOnly,
-			v.WhitespaceViolations},
+		{ErrLengthLess, 
+		v.MinLengthViolations},
+		
+		{ErrLengthMore, 
+		v.MaxLengthViolations},
 
-		{
-			ErrUpperNotAllowed,
-			v.UpperViolations},
+		{ErrMinLetterViolation, 
+		v.MinLetterViolations},
 
-		{
-			ErrLowerNotAllowed,
-			v.LowerViolations},
+		{ErrMaxLetterViolation, 
+		v.MaxLetterViolations},
 
-		{
-			ErrLengthLess,
-			v.MinLengthViolations},
+		{ErrMinUpperViolation, 
+		v.MinUpperViolations},
 
+		{ErrMaxUpperViolation, 
+		v.MaxUpperViolations},
+
+		{ErrMinLowerViolation, 
+		v.MinLowerViolations},
+
+		{ErrMaxLowerViolation, 
+		v.MaxLowerViolations},
+
+		{ErrMinNumberViolation, 
+		v.MinNumberViolations},
+
+		{ErrMaxNumberViolation, 
+		v.MaxNumberViolations},
+
+		{ErrMinSymbolViolation, 
+		v.MinSymbolViolations},
+
+		{ErrMaxSymbolViolation, 
+		v.MaxSymbolViolations},
+
+		{ErrMinWhitespaceViolation, 
+		v.MinWhiteSpaceViolations},
+
+		{ErrMaxWhitespaceViolation, 
+		v.MaxWhiteSpaceViolations},
+
+		{ErrUpperNotAllowed, 
+		v.UpperViolations},
 		{
-			ErrLengthMore,
-			v.MaxLengthViolations},
+			ErrLowerNotAllowed, 
+		v.LowerViolations},
+		{
+			ErrNumberNotAllowed, 
+		v.NumberViolations},
+		
+		{ErrSymbolNotAllowed, 
+		v.SymbolViolations},
+		
+		{ErrWhitespaceOnly, 
+		v.WhitespaceViolations},
 	}
 
-	errs := make([]string, 0, len(rules))
+	items := make([]ViolationItem, 0, len(rules))
 
 	for _, r := range rules {
 		if r.count > 0 {
-			errs = append(errs, formatError(r.err, r.count, withCount))
+			items = append(items, ViolationItem{
+					Cause: r.err.Error(),
+					Contains: r.count,
+			})
 		}
 	}
 
-	return errs
+	return DetailBreakdown{
+		TotalViolations: 	v.TotalViolations,
+		Violations: 		items,
+	}
 }
 
 func formatError(err error, count int, withCount bool) string {
