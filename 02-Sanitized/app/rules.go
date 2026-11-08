@@ -85,7 +85,7 @@ func ValidateRules(b []byte, cs CostumeRules, c *Config, r *ViolationReport) {
 	upper, lower, num, sym, ws := 0, 0, 0, 0, 0
 
 	for i := 0; i < length; i++ {
-		flag := CharTable[b[i]]
+		flag := charTable[b[i]]
 
 		switch {
 		case (flag & FlagAllowUpperOnly) != 0:
