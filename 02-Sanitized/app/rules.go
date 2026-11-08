@@ -84,7 +84,7 @@ func ValidateRules(b []byte, cs CostumeRules, c *Config, r *ViolationReport) {
 
 	upper, lower, num, sym, ws := 0, 0, 0, 0, 0
 
-	for i := range length {
+	for i := 0; i < length; i++ {
 		flag := CharTable[b[i]]
 
 		switch {
@@ -103,55 +103,57 @@ func ValidateRules(b []byte, cs CostumeRules, c *Config, r *ViolationReport) {
 
 	letter := upper + lower
 
-	if (c.UniversalFlags & LetterPreset) == 0 && letter > 0 {
-		r.LetterViolations += letter
-		r.TotalViolations += letter
+	if (c.UniversalFlags & LetterPreset) == 0 {
+		if letter > 0 {
+			r.LetterViolations += letter
+			r.TotalViolations += letter
+		}
 	} else {
+		if (c.UniversalFlags & FlagAllowUpperOnly) == 0 && upper > 0 {
+			r.UpperViolations += upper
+			r.TotalViolations += upper
+		} else {
+			if cs.MaxUpper >= 0 && upper > cs.MaxUpper {
+				diff := upper - cs.MaxUpper
+				r.MaxUpperViolations += diff
+				r.TotalViolations += diff
+			}
+			if cs.ReqUpper > 0 && upper < cs.ReqUpper {
+				diff := cs.ReqUpper - upper
+				r.MinUpperViolations += diff
+				r.TotalViolations += diff
+			}
+		}
+
+		if (c.UniversalFlags & FlagAllowLowerOnly) == 0 && lower > 0 {
+			r.LowerViolations += lower
+			r.TotalViolations += lower
+		} else {
+			if cs.MaxLower >= 0 && lower > cs.MaxLower {
+				diff := lower - cs.MaxLower
+				r.MaxLowerViolations += diff
+				r.TotalViolations += diff
+			}
+			if cs.ReqLower > 0 && lower < cs.ReqLower {
+				diff := cs.ReqLower - lower
+				r.MinLowerViolations += diff
+				r.TotalViolations += diff
+			}
+		}
+
 		if cs.MaxLetter >= 0 && letter > cs.MaxLetter {
 			diff := letter - cs.MaxLetter
 			r.MaxLetterViolations += diff
 			r.TotalViolations += diff
 		}
-		if cs.ReqLetter >= 0 && letter < cs.ReqLetter {
+		if cs.ReqLetter > 0 && letter < cs.ReqLetter {
 			diff := cs.ReqLetter - letter
 			r.MinLetterViolations += diff
 			r.TotalViolations += diff
 		}
 	}
 
-	if (c.UniversalFlags & FlagAllowUpperOnly) == 0 && upper > 0 {
-		r.UpperViolations += upper
-		r.TotalViolations += upper
-	} else {
-		if cs.MaxUpper >= 0 && upper > cs.MaxUpper {
-			diff := upper - cs.MaxUpper
-			r.MaxUpperViolations += diff
-			r.TotalViolations += diff
-		}
-		if cs.ReqUpper > 0 && upper < cs.ReqUpper {
-			diff := cs.ReqUpper - upper
-			r.MinUpperViolations += diff
-			r.TotalViolations += diff
-		}
-	}
-
-	if (c.UniversalFlags & FlagAllowLowerOnly) == 0 && lower > 0 {
-		r.LowerViolations += lower
-		r.TotalViolations += lower
-	} else {
-		if cs.MaxLower >= 0 && lower > cs.MaxLower {
-			diff := lower - cs.MaxLower
-			r.MaxLowerViolations += diff
-			r.TotalViolations += diff
-		}
-		if cs.ReqLower >= 0 && lower < cs.ReqLower {
-			diff := cs.ReqLower - lower
-			r.MinLowerViolations += diff
-			r.TotalViolations += diff
-		}
-	}
-
-	if (c.UniversalFlags & FlagAllowNumbers) == 0 && num > 0 { 
+	if (c.UniversalFlags & FlagAllowNumbers) == 0 && num > 0 {
 		r.NumberViolations += num
 		r.TotalViolations += num
 	} else {
@@ -160,7 +162,7 @@ func ValidateRules(b []byte, cs CostumeRules, c *Config, r *ViolationReport) {
 			r.MaxNumberViolations += diff
 			r.TotalViolations += diff
 		}
-		if cs.ReqNumbers >= 0 && num < cs.ReqNumbers {
+		if cs.ReqNumbers > 0 && num < cs.ReqNumbers {
 			diff := cs.ReqNumbers - num
 			r.MinNumberViolations += diff
 			r.TotalViolations += diff
@@ -176,7 +178,7 @@ func ValidateRules(b []byte, cs CostumeRules, c *Config, r *ViolationReport) {
 			r.MaxSymbolViolations += diff
 			r.TotalViolations += diff
 		}
-		if cs.ReqSymbols >= 0 && sym < cs.ReqSymbols {
+		if cs.ReqSymbols > 0 && sym < cs.ReqSymbols {
 			diff := cs.ReqSymbols - sym
 			r.MinSymbolViolations += diff
 			r.TotalViolations += diff
@@ -192,7 +194,7 @@ func ValidateRules(b []byte, cs CostumeRules, c *Config, r *ViolationReport) {
 			r.MaxWhiteSpaceViolations += diff
 			r.TotalViolations += diff
 		}
-		if cs.ReqWhiteSpace >= 0 && ws < cs.ReqWhiteSpace {
+		if cs.ReqWhiteSpace > 0 && ws < cs.ReqWhiteSpace {
 			diff := cs.ReqWhiteSpace - ws
 			r.MinWhiteSpaceViolations += diff
 			r.TotalViolations += diff
