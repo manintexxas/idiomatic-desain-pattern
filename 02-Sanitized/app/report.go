@@ -4,8 +4,25 @@ import (
 	"fmt"
 )
 
+type ViolationItem struct {
+	Cause	  string `json:"Cause"`
+	Countains int	 `json:"Contains"`
+}
+
+type DetailBreakdown struct {
+	TotalViolations int `json:"Total"`
+	Violations		[]ViolationItem `json:"Violations"`
+}
+
 func (v *ViolationReport) HasViolations() bool {
 	return v.TotalViolations > 0
+}
+
+func (v *ViolationReport) TriggerMalformedEarlyExit() {
+	*v = ViolationReport{
+			MalformedUnicodeViolations: 1,
+			TotalViolations: 			1,
+	}
 }
 
 func (v *ViolationReport) GetErrors(withCount bool) []string {
@@ -32,6 +49,14 @@ func (v *ViolationReport) GetErrors(withCount bool) []string {
 		{
 			ErrLowerNotAllowed,
 			v.LowerViolations},
+
+		{
+			ErrLengthLess,
+			v.MinLengthViolations},
+
+		{
+			ErrLengthMore,
+			v.MaxLengthViolations},
 	}
 
 	errs := make([]string, 0, len(rules))
