@@ -115,3 +115,13 @@ func (v *ViolationReport) GetErrorsDetail() DetailBreakdown {
 	}
 }
 
+func (v *ViolationReport) GetErrors() []string {
+	detail := v.GetErrorsDetail()
+	errs := make([]string, 0, len(detail.Violations))
+
+	for _, item := range detail.Violations {
+		errs = append(errs, item.Cause)
+	}
+
+	return errs
+}
