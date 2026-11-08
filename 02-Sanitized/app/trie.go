@@ -21,7 +21,7 @@ func (t *Trie) Insert(b []byte) {
 		if char >= 65 && char <= 90 {
 			char |= 0x20
 		}
-		
+
 		if current.Children[char] == nil {
 			current.Children[char] = &TrieNode{}
 		}
@@ -93,7 +93,7 @@ func (t *Trie) findMatch(b []byte, index, length int) (int, int) {
 
 		next := current.Children[searchChar]
 
-		if isSymbolOrWhitespace(searchChar) || isNumber(searchChar) || (searchChar == lastChar && next == nil){
+		if isSymbolOrWhitespace(searchChar) || isNumber(searchChar) || (searchChar == lastChar && next == nil) {
 			innerIndex++
 			continue
 		}
@@ -114,7 +114,7 @@ func (t *Trie) findMatch(b []byte, index, length int) (int, int) {
 	return lastEndIndex, innerIndex
 }
 
-func (t *Trie) hasMatch (b []byte) bool {
+func (t *Trie) hasMatch(b []byte) bool {
 	length := len(b)
 	for index := 0; index < length; {
 		lastEndIndex, innerIndex := t.findMatch(b, index, length)
@@ -141,7 +141,7 @@ func (t *Trie) resolveActualStart(b []byte, index, lastEndIndex int) int {
 
 func (t *Trie) isValidBoundary(b []byte, actualStart, lastEndIndex, length int, matchLength int) bool {
 	start := (actualStart == 0 || isWordBoundary(b, actualStart-1))
-	
+
 	isAtEnd := (lastEndIndex == length)
 
 	var isNextLetter bool
@@ -151,7 +151,7 @@ func (t *Trie) isValidBoundary(b []byte, actualStart, lastEndIndex, length int, 
 	}
 
 	if matchLength <= 3 {
-		if isNextLetter{
+		if isNextLetter {
 			return false
 		}
 	}
@@ -212,11 +212,11 @@ func (t *Trie) SanitizeOrMaskWithWhitelist(b []byte, maskByte byte, isCleaned bo
 					index = fullWordEnd
 				} else {
 					if isCleaned {
-                        if lastEndIndex < length && b[lastEndIndex] == ' ' {
-                            length, index = t.applyRemoval(b, actualStart, lastEndIndex + 1, length)
-                        } else {
-                            length, index = t.applyRemoval(b, actualStart, lastEndIndex, length)
-                        }
+						if lastEndIndex < length && b[lastEndIndex] == ' ' {
+							length, index = t.applyRemoval(b, actualStart, lastEndIndex+1, length)
+						} else {
+							length, index = t.applyRemoval(b, actualStart, lastEndIndex, length)
+						}
 					} else {
 						t.applyMasking(b, actualStart, lastEndIndex, maskByte)
 						index = lastEndIndex
