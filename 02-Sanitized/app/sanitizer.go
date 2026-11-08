@@ -36,6 +36,10 @@ type Config struct {
 }
 
 type ViolationReport struct {
+	KeywordViolations int
+
+	MalformedUnicodeViolations int 
+	
 	LetterViolations    int
 	MaxLetterViolations int
 	MinLetterViolations int
