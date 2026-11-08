@@ -20,8 +20,8 @@ const (
 )
 
 const (
-	SentencePreset Flag = FlagAllowUpperOnly | FlagAllowLowerOnly
-	DefaultPreset  Flag = SentencePreset | FlagAllowNumbers | FlagAllowSymbols | FlagAllowWhitespace
+	LetterPreset Flag = FlagAllowUpperOnly | FlagAllowLowerOnly
+	DefaultPreset  Flag = LetterPreset | FlagAllowNumbers | FlagAllowSymbols | FlagAllowWhitespace
 )
 
 type Engine struct {
@@ -36,13 +36,43 @@ type Config struct {
 }
 
 type ViolationReport struct {
-	UpperViolations		  int
-	LowerViolations		  int
-	LetterViolations      int
-	NumberViolations      int
-	SymbolViolations      int
-	WhitespaceViolations  int
-	TotalViolations       int
+	LetterViolations      		int
+	MaxLetterViolations	  		int
+	MinLetterViolations	  		int
+	
+	UpperViolations		  		int
+	MaxUpperViolations	  		int
+	MinUpperViolations	  		int
+	
+	LowerViolations		  		int
+	MaxLowerViolations	 		int
+	MinLowerViolations	  		int
+	
+	NumberViolations      		int
+	MaxNumberViolations	  		int
+	MinNumberViolations	  		int
+	
+	SymbolViolations      		int
+	MaxSymbolViolations	  		int
+	MinSymbolViolations	  		int
+	
+	WhitespaceViolations  		int
+	MaxWhiteSpaceViolations		int
+	MinWhiteSpaceViolations		int
+	
+	MinLengthViolations	  		int
+	MaxLengthViolations	 		int
+	
+	TotalViolations       		int
+	
+	ReqOverMaxLetter	  		bool
+	ReqOverMaxUpper		  		bool
+	ReqOverMaxLower		  		bool
+	ReqOverMaxNumber			bool
+	ReqOverMaxSymbol	 		bool
+	ReqOverMaxWhiteSpace		bool
+	ReqOverMaxLength			bool
+
 }
 
 var (
@@ -56,4 +86,7 @@ var (
 	ErrDisallowedKeyword         = errors.New("Text contains blocked keywords")
 	ErrWhitespaceOnly            = errors.New("Input contains only whitespaces")
 	ErrValidationFailed          = errors.New("Validation failed")
+	ErrLengthLess				 = errors.New("Length less than minimal length")
+	ErrLengthMore				 = errors.New("Length more than maximal length")
+	ErrReqMoreMax				 = errors.New("Requirentment cannot surpass max lenght")
 )
