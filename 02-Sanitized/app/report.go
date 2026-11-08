@@ -115,9 +115,3 @@ func (v *ViolationReport) GetErrorsDetail() DetailBreakdown {
 	}
 }
 
-func formatError(err error, count int, withCount bool) string {
-	if withCount {
-		return fmt.Sprintf("%v: contains %d", err, count)
-	}
-	return err.Error()
-}
