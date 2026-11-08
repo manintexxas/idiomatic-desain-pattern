@@ -58,7 +58,7 @@ func (cs *CostumeRules) ValidateRulesConfig() (error, bool) {
 	return nil, false
 }
 
-func ValidateRules(b []byte, cs CostumeRules, c *Config, r *ViolationReport) {
+func ValidateRules(b []byte, cs CostumeRules, c *Config, e *Engine, r *ViolationReport) {
 	if _, isInvalid := cs.ValidateRulesConfig(); isInvalid {
 		r.TotalViolations = 1
 		return
@@ -86,6 +86,12 @@ func ValidateRules(b []byte, cs CostumeRules, c *Config, r *ViolationReport) {
 
 	for i := 0; i < length; i++ {
 		flag := charTable[b[i]]
+
+		if flag == 0 {
+			r.MalformedUnicodeViolations = 1
+			r.TotalViolations = 1
+			return
+		}
 
 		switch {
 		case (flag & FlagAllowUpperOnly) != 0:
@@ -130,7 +136,7 @@ func ValidateRules(b []byte, cs CostumeRules, c *Config, r *ViolationReport) {
 			r.TotalViolations += lower
 		} else {
 			if cs.MaxLower >= 0 && lower > cs.MaxLower {
-				diff := lower - cs.MaxLower
+				diff := cs.MaxLower - lower
 				r.MaxLowerViolations += diff
 				r.TotalViolations += diff
 			}
@@ -198,6 +204,13 @@ func ValidateRules(b []byte, cs CostumeRules, c *Config, r *ViolationReport) {
 			diff := cs.ReqWhiteSpace - ws
 			r.MinWhiteSpaceViolations += diff
 			r.TotalViolations += diff
+		}
+	}
+
+	if (c.UniversalFlags & FlagAllowKeywords) != 0 && e != nil && e.Trie != nil {
+		if e.Trie.hasMatch(b) {
+			r.KeywordViolations = 1
+			r.TotalViolations++
 		}
 	}
 }
