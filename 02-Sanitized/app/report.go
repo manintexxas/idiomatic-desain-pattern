@@ -1,9 +1,5 @@
 package app
 
-import (
-	"fmt"
-)
-
 type ViolationItem struct {
 	Cause	  string `json:"Cause"`
 	Contains int	 `json:"Contains"`
@@ -116,11 +112,40 @@ func (v *ViolationReport) GetErrorsDetail() DetailBreakdown {
 }
 
 func (v *ViolationReport) GetErrors() []string {
-	detail := v.GetErrorsDetail()
-	errs := make([]string, 0, len(detail.Violations))
+	rules := [...]struct {
+		err   error
+		count int
+	}{
+		{ErrMalformedUnicode, v.MalformedUnicodeViolations},
+		{ErrDisallowedKeyword, v.KeywordViolations},
+		{ErrLengthLess, v.MinLengthViolations},
+		{ErrLengthMore, v.MaxLengthViolations},
+		{ErrMinLetterViolation, v.MinLetterViolations},
+		{ErrMaxLetterViolation, v.MaxLetterViolations},
+		{ErrMinUpperViolation, v.MinUpperViolations},
+		{ErrMaxUpperViolation, v.MaxUpperViolations},
+		{ErrMinLowerViolation, v.MinLowerViolations},
+		{ErrMaxLowerViolation, v.MaxLowerViolations},
+		{ErrMinNumberViolation, v.MinNumberViolations},
+		{ErrMaxNumberViolation, v.MaxNumberViolations},
+		{ErrMinSymbolViolation, v.MinSymbolViolations},
+		{ErrMaxSymbolViolation, v.MaxSymbolViolations},
+		{ErrMinWhitespaceViolation, v.MinWhiteSpaceViolations},
+		{ErrMaxWhitespaceViolation, v.MaxWhiteSpaceViolations},
+		{ErrUpperNotAllowed, v.UpperViolations},
+		{ErrLowerNotAllowed, v.LowerViolations},
+		{ErrNumberNotAllowed, v.NumberViolations},
+		{ErrSymbolNotAllowed, v.SymbolViolations},
+		{ErrWhitespaceOnly, v.WhitespaceViolations},
+	}
 
-	for _, item := range detail.Violations {
-		errs = append(errs, item.Cause)
+	// Alokasi slice string langsung sejumlah error yang aktif
+	errs := make([]string, 0, len(rules))
+
+	for _, r := range rules {
+		if r.count > 0 {
+			errs = append(errs, r.err.Error())
+		}
 	}
 
 	return errs
