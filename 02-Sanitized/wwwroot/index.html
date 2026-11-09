@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#eddfef">
+  <meta name="description" content="GTSGE Engine text validation and sanitization interface">
+  <title>GTSGE Engine</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <main class="page-shell">
+    <section class="workspace-card" aria-labelledby="app-title">
+      <header class="workspace-header">
+        <div>
+          <p class="eyebrow">TEXT VALIDATION &amp; SANITIZATION</p>
+          <h1 id="app-title">GTSGE Engine</h1>
+        </div>
+        <div class="system-indicator" aria-live="polite">
+          <span class="status-dot" id="system-status-dot"></span>
+          <span id="system-status">LOADING</span>
+        </div>
+      </header>
+
+      <div class="workspace-grid">
+        <section class="control-panel" aria-labelledby="input-heading">
+          <div class="section-heading">
+            <h2 id="input-heading">Input</h2>
+            <span class="section-note">Payload</span>
+          </div>
+
+          <div class="field-group input-group">
+            <label for="payload-input">Text payload</label>
+            <textarea
+              id="payload-input"
+              class="text-area input-area"
+              rows="8"
+              spellcheck="false"
+              autocomplete="off"
+              autocapitalize="off"
+              placeholder="Enter text to validate or process..."
+              aria-describedby="input-byte-status"
+            ></textarea>
+            <div class="field-meta" id="input-byte-status">
+              <span id="input-byte-count">0 / 2048 bytes</span>
+              <span>Auto-process · 300 ms</span>
+            </div>
+            <p class="field-warning" id="payload-warning" role="status" hidden>
+              Payload exceeds the engine limit of 2048 bytes.
+            </p>
+          </div>
+
+          <fieldset class="mode-fieldset">
+            <legend>Engine mode</legend>
+            <div class="mode-selector" role="group" aria-label="Engine mode">
+              <button class="mode-button is-selected" type="button" data-mode="find" aria-pressed="true">Find</button>
+              <button class="mode-button" type="button" data-mode="clean" aria-pressed="false">Clean</button>
+              <button class="mode-button" type="button" data-mode="mask" aria-pressed="false">Mask</button>
+            </div>
+            <p class="mode-description" id="mode-description">Validate the input without modifying its contents.</p>
+          </fieldset>
+
+          <div class="configuration-actions">
+            <button class="button button-secondary add-config-button" id="open-configuration" type="button" disabled>
+              Add Configuration
+            </button>
+            <button class="button button-quiet reset-config-button" id="reset-configuration" type="button" disabled
+              aria-label="Reset configuration" title="Reset configuration">
+              <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" focusable="false">
+                <path d="M3.5 11a8.5 8.5 0 1 1 2.1 5.65M3.5 11V5.5M3.5 11H9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+          </div>
+
+          <div class="configuration-summary" aria-live="polite">
+            <span class="summary-label">Active configuration</span>
+            <span id="configuration-summary">Default character flags and rules</span>
+          </div>
+        </section>
+
+        <section class="result-panel" aria-labelledby="output-heading">
+          <div class="section-heading result-heading">
+            <h2 id="output-heading">Output</h2>
+            <span class="section-note" id="output-mode-label">FIND</span>
+          </div>
+
+          <div class="field-group output-group">
+            <label for="output-text">Processed text</label>
+            <textarea
+              id="output-text"
+              class="text-area output-area"
+              rows="8"
+              readonly
+              spellcheck="false"
+              placeholder="Processed output will appear here..."
+            ></textarea>
+            <div class="field-meta">
+              <span id="output-byte-count">0 bytes</span>
+              <span id="output-state">No result yet</span>
+            </div>
+          </div>
+
+          <div class="result-status-row">
+            <div>
+              <span class="metric-label">Validation status</span>
+              <div class="validation-status status-pending" id="validation-status" role="status" aria-live="polite">
+                Awaiting result
+              </div>
+            </div>
+            <div class="violation-total-block">
+              <span class="metric-label">Total violations</span>
+              <strong class="violation-total" id="violation-total">—</strong>
+            </div>
+          </div>
+
+          <section class="telemetry-section" aria-labelledby="telemetry-heading">
+            <div class="section-heading compact-heading">
+              <h3 id="telemetry-heading">Execution statistics</h3>
+            </div>
+            <div class="telemetry-grid">
+              <div class="metric-cell">
+                <span class="metric-label">Setup</span>
+                <strong class="metric-value" id="setup-ns">—</strong>
+                <span class="metric-unit">ns</span>
+              </div>
+              <div class="metric-cell">
+                <span class="metric-label">Process</span>
+                <strong class="metric-value" id="process-ns">—</strong>
+                <span class="metric-unit">ns</span>
+              </div>
+              <div class="metric-cell">
+                <span class="metric-label">Total</span>
+                <strong class="metric-value" id="total-ns">—</strong>
+                <span class="metric-unit">ns</span>
+              </div>
+            </div>
+            <div class="byte-statistics">
+              <div class="byte-metric">
+                <span class="metric-label">Input bytes</span>
+                <strong id="telemetry-input-bytes">—</strong>
+              </div>
+              <div class="byte-metric">
+                <span class="metric-label">Output bytes</span>
+                <strong id="telemetry-output-bytes">—</strong>
+              </div>
+            </div>
+          </section>
+
+          <section class="report-section" aria-labelledby="report-heading">
+            <div class="section-heading compact-heading">
+              <h3 id="report-heading">Violation report</h3>
+              <span class="section-note" id="report-state">No report</span>
+            </div>
+            <div class="report-content" id="violation-list" aria-live="polite">
+              <p class="empty-state">Violation details will appear after processing.</p>
+            </div>
+          </section>
+
+          <div class="request-error" id="request-error" role="alert" hidden>
+            <span id="request-error-message"></span>
+            <button class="button button-quiet retry-button" id="retry-request" type="button">Retry</button>
+          </div>
+        </section>
+      </div>
+
+      <footer class="workspace-footer">
+        <span>GTSGE Engine API</span>
+        <span id="engine-limit-label">Payload limit: 2048 bytes</span>
+      </footer>
+    </section>
+  </main>
+
+  <dialog class="configuration-dialog" id="configuration-dialog" aria-labelledby="configuration-title">
+    <form class="configuration-form" id="configuration-form" novalidate>
+      <header class="dialog-header">
+        <div>
+          <p class="eyebrow">ENGINE SETTINGS</p>
+          <h2 id="configuration-title">Add Configuration</h2>
+        </div>
+        <button class="dialog-close" id="close-configuration" type="button" aria-label="Close configuration">×</button>
+      </header>
+
+      <div class="dialog-body">
+        <div class="config-guidance" role="note">
+          <span class="guidance-label">IMPORTANT</span>
+          <p><strong>Blank = None.</strong> Use whole numbers from 1 to 2048. Every Maximum must be greater than or equal to its matching Required value.</p>
+        </div>
+
+        <details class="config-section config-accordion" id="character-settings" open>
+          <summary class="config-section-heading">
+            <span class="accordion-title-group">
+              <span class="accordion-index">01</span>
+              <span class="accordion-title-copy">
+                <strong>Character policy</strong>
+                <small>Choose which character categories are allowed.</small>
+              </span>
+            </span>
+            <span class="accordion-meta" id="character-flags-summary">5 enabled</span>
+          </summary>
+          <div class="accordion-panel">
+            <div class="flag-grid">
+              <label class="check-control"><input type="checkbox" name="character-flag" value="uppercase"><span>Uppercase</span></label>
+              <label class="check-control"><input type="checkbox" name="character-flag" value="lowercase"><span>Lowercase</span></label>
+              <label class="check-control"><input type="checkbox" name="character-flag" value="numbers"><span>Numbers</span></label>
+              <label class="check-control"><input type="checkbox" name="character-flag" value="whitespace"><span>Whitespace</span></label>
+              <label class="check-control"><input type="checkbox" name="character-flag" value="symbols"><span>Symbols</span></label>
+            </div>
+            <div class="masking-info">
+              <div>
+                <h3>Masking character</h3>
+                <p>Selected automatically from the Symbols setting.</p>
+              </div>
+              <strong id="masking-character">*</strong>
+            </div>
+          </div>
+        </details>
+
+        <details class="config-section config-accordion" id="rules-section">
+          <summary class="config-section-heading">
+            <span class="accordion-title-group">
+              <span class="accordion-index">02</span>
+              <span class="accordion-title-copy">
+                <strong>Custom rules</strong>
+                <small>Optional minimum and maximum constraints.</small>
+              </span>
+            </span>
+            <span class="accordion-meta" id="rules-summary">14 available</span>
+          </summary>
+          <div class="accordion-panel rules-panel">
+            <details class="rules-group rule-accordion" open>
+              <summary><span>Payload length</span><small>Measured in bytes</small></summary>
+              <p class="rules-help">Leave either field blank for no limit. The engine maximum is 2048 bytes.</p>
+              <div class="rules-grid rules-grid-two">
+                <label class="number-control" for="rule-min-length">
+                  <span>Minimum bytes</span>
+                  <input id="rule-min-length" data-rule="min_length" type="number" min="1" max="2048" step="1" inputmode="numeric" placeholder="None">
+                  <small id="hint-min-length">Default: None</small>
+                </label>
+                <label class="number-control" for="rule-max-length">
+                  <span>Maximum bytes</span>
+                  <input id="rule-max-length" data-rule="max_length" type="number" min="1" max="2048" step="1" inputmode="numeric" placeholder="None">
+                  <small id="hint-max-length">Default: None</small>
+                </label>
+              </div>
+            </details>
+
+            <details class="rules-group rule-accordion" id="letter-rules-group">
+              <summary><span>Letters</span><small id="letter-rule-status">Requires Uppercase + Lowercase</small></summary>
+              <p class="rules-help">Total-letter rules require both Uppercase and Lowercase. Individual limits require their matching category.</p>
+              <div class="rules-grid rules-grid-two">
+                <label class="number-control" for="rule-max-letter"><span>Maximum letters</span><input id="rule-max-letter" data-rule="max_letter" type="number" min="1" max="2048" step="1" inputmode="numeric" placeholder="None"><small id="hint-max-letter">Default: None</small></label>
+                <label class="number-control" for="rule-req-letter"><span>Required letters</span><input id="rule-req-letter" data-rule="req_letter" type="number" min="1" max="2048" step="1" inputmode="numeric" placeholder="None"><small id="hint-req-letter">Default: None</small></label>
+                <label class="number-control" for="rule-max-upper"><span>Maximum uppercase</span><input id="rule-max-upper" data-rule="max_upper" type="number" min="1" max="2048" step="1" inputmode="numeric" placeholder="None"><small id="hint-max-upper">Default: None</small></label>
+                <label class="number-control" for="rule-req-upper"><span>Required uppercase</span><input id="rule-req-upper" data-rule="req_upper" type="number" min="1" max="2048" step="1" inputmode="numeric" placeholder="None"><small id="hint-req-upper">Default: None</small></label>
+                <label class="number-control" for="rule-max-lower"><span>Maximum lowercase</span><input id="rule-max-lower" data-rule="max_lower" type="number" min="1" max="2048" step="1" inputmode="numeric" placeholder="None"><small id="hint-max-lower">Default: None</small></label>
+                <label class="number-control" for="rule-req-lower"><span>Required lowercase</span><input id="rule-req-lower" data-rule="req_lower" type="number" min="1" max="2048" step="1" inputmode="numeric" placeholder="None"><small id="hint-req-lower">Default: None</small></label>
+              </div>
+            </details>
+
+            <details class="rules-group rule-accordion">
+              <summary><span>Numbers and symbols</span><small>Per-category limits</small></summary>
+              <div class="rules-grid rules-grid-two">
+                <label class="number-control" for="rule-max-numbers"><span>Maximum numbers</span><input id="rule-max-numbers" data-rule="max_numbers" type="number" min="1" max="2048" step="1" inputmode="numeric" placeholder="None"><small id="hint-max-numbers">Default: None</small></label>
+                <label class="number-control" for="rule-req-numbers"><span>Required numbers</span><input id="rule-req-numbers" data-rule="req_numbers" type="number" min="1" max="2048" step="1" inputmode="numeric" placeholder="None"><small id="hint-req-numbers">Default: None</small></label>
+                <label class="number-control" for="rule-max-symbols"><span>Maximum symbols</span><input id="rule-max-symbols" data-rule="max_symbols" type="number" min="1" max="2048" step="1" inputmode="numeric" placeholder="None"><small id="hint-max-symbols">Default: None</small></label>
+                <label class="number-control" for="rule-req-symbols"><span>Required symbols</span><input id="rule-req-symbols" data-rule="req_symbols" type="number" min="1" max="2048" step="1" inputmode="numeric" placeholder="None"><small id="hint-req-symbols">Default: None</small></label>
+              </div>
+            </details>
+
+            <details class="rules-group rule-accordion">
+              <summary><span>Whitespace</span><small>Spaces, tabs and line breaks</small></summary>
+              <div class="rules-grid rules-grid-two">
+                <label class="number-control" for="rule-max-whitespace"><span>Maximum whitespace</span><input id="rule-max-whitespace" data-rule="max_whitespace" type="number" min="1" max="2048" step="1" inputmode="numeric" placeholder="None"><small id="hint-max-whitespace">Default: None</small></label>
+                <label class="number-control" for="rule-req-whitespace"><span>Required whitespace</span><input id="rule-req-whitespace" data-rule="req_whitespace" type="number" min="1" max="2048" step="1" inputmode="numeric" placeholder="None"><small id="hint-req-whitespace">Default: None</small></label>
+              </div>
+            </details>
+          </div>
+        </details>
+
+        <details class="config-section config-accordion" id="keyword-section">
+          <summary class="config-section-heading">
+            <span class="accordion-title-group">
+              <span class="accordion-index">03</span>
+              <span class="accordion-title-copy">
+                <strong>Keyword filtering</strong>
+                <small>Blocked terms and whitelist exceptions.</small>
+              </span>
+            </span>
+            <span class="accordion-meta" id="keyword-summary">No keywords</span>
+          </summary>
+          <div class="accordion-panel">
+            <div class="keyword-columns">
+              <section class="keyword-box" aria-labelledby="keywords-heading">
+                <div class="keyword-box-heading">
+                  <h4 id="keywords-heading">Blocked keywords</h4>
+                  <span>Filtered by engine</span>
+                </div>
+                <div class="dynamic-list" id="keywords-list"></div>
+                <button class="button button-add-entry" id="add-keyword" type="button">Add keyword</button>
+                <p class="keyboard-hint">Press Enter to move forward or create the next entry.</p>
+              </section>
+              <section class="keyword-box" aria-labelledby="whitelist-heading">
+                <div class="keyword-box-heading">
+                  <h4 id="whitelist-heading">Whitelist</h4>
+                  <span>Exempt from filtering</span>
+                </div>
+                <div class="dynamic-list" id="whitelist-list"></div>
+                <button class="button button-add-entry" id="add-whitelist" type="button">Add whitelist entry</button>
+                <p class="keyboard-hint">Press Enter to move forward or create the next entry.</p>
+              </section>
+            </div>
+            <p class="keyword-note">Whitelist requires at least one blocked keyword.</p>
+          </div>
+        </details>
+
+        <p class="configuration-error" id="configuration-error" role="alert" hidden></p>
+      </div>
+      <footer class="dialog-footer">
+        <button class="button button-quiet" id="cancel-configuration" type="button">Cancel</button>
+        <button class="button button-primary" id="save-configuration" type="submit">Apply Configuration</button>
+      </footer>
+
+      <section class="discard-confirmation" id="discard-confirmation" role="alertdialog" aria-labelledby="discard-title" aria-describedby="discard-description" hidden>
+        <div class="discard-confirmation-panel">
+          <h3 id="discard-title">Discard unsaved changes?</h3>
+          <p id="discard-description">Your edits will be discarded. The previously applied configuration will remain active.</p>
+          <div class="discard-confirmation-actions">
+            <button class="button button-quiet" id="keep-editing" type="button">Keep editing</button>
+            <button class="button button-primary" id="discard-changes" type="button">Discard changes</button>
+          </div>
+        </div>
+      </section>
+    </form>
+  </dialog>
+</body>
+</html>

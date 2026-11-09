@@ -116,15 +116,40 @@ func (t *Trie) findMatch(b []byte, index, length int) (int, int) {
 
 func (t *Trie) hasMatch(b []byte) bool {
 	length := len(b)
-	for index := 0; index < length; {
-		lastEndIndex, innerIndex := t.findMatch(b, index, length)
-		if lastEndIndex != -1 {
-			return true
-		}
-		if innerIndex > index {
-			index = innerIndex
-		} else {
-			index++
+	if length == 0 || t.Root == nil {
+		return false
+	}
+
+	for i := 0; i < length; i++ {
+		current := t.Root
+		innerIndex := i
+		var lastChar byte = 0
+
+		for innerIndex < length {
+			searchChar := b[innerIndex]
+
+			if searchChar >= 65 && searchChar <= 90 {
+				searchChar |= 0x20
+			}
+
+			next := current.Children[searchChar]
+
+			if isSymbolOrWhitespace(searchChar) || isNumber(searchChar) || (searchChar == lastChar && next == nil) {
+				innerIndex++
+				continue
+			}
+
+			if next == nil {
+				break
+			}
+
+			current = next
+			lastChar = searchChar
+			innerIndex++
+
+			if current.IsEnd {
+				return true
+			}
 		}
 	}
 
@@ -140,32 +165,31 @@ func (t *Trie) resolveActualStart(b []byte, index, lastEndIndex int) int {
 }
 
 func (t *Trie) isValidBoundary(b []byte, actualStart, lastEndIndex, length int, matchLength int) bool {
-	start := (actualStart == 0 || isWordBoundary(b, actualStart-1))
+	start := actualStart == 0 ||
+		isWordBoundary(b, actualStart-1)
 
-	isAtEnd := (lastEndIndex == length)
+	isAtEnd := lastEndIndex == length
 
 	var isNextLetter bool
 	if !isAtEnd {
 		nextChar := b[lastEndIndex]
-		isNextLetter = (nextChar >= 'a' && nextChar <= 'z') || (nextChar >= 'A' && nextChar <= 'Z')
+		isNextLetter = (nextChar >= 'a' && nextChar <= 'z') ||
+			(nextChar >= 'A' && nextChar <= 'Z')
 	}
 
 	if matchLength <= 3 {
 		if isNextLetter {
 			return false
 		}
+
+		if isAtEnd {
+			return start
+		}
+
+		return start && isWordBoundary(b, lastEndIndex)
 	}
 
-	if isAtEnd {
-		return start
-	}
-
-	if isNextLetter {
-		return true
-	}
-
-	end := isWordBoundary(b, lastEndIndex)
-	return start && end
+	return true
 }
 
 func (t *Trie) applyMasking(b []byte, start, end int, maskByte byte) {

@@ -1,14 +1,10 @@
 package app
 
-import (
-	"errors"
-)
+import "errors"
 
 type Flag uint8
 
-var (
-	charTable [256]Flag
-)
+var charTable [256]Flag
 
 const (
 	FlagAllowUpperOnly Flag = 1 << iota
@@ -20,26 +16,57 @@ const (
 )
 
 const (
-	LetterPreset  Flag = FlagAllowUpperOnly | FlagAllowLowerOnly
-	DefaultPreset Flag = LetterPreset | FlagAllowNumbers | FlagAllowSymbols | FlagAllowWhitespace
+	FlagAllowUppercase = FlagAllowUpperOnly
+	FlagAllowLowercase = FlagAllowLowerOnly
+	FlagAllowNumber    = FlagAllowNumbers
+	FlagAllowSymbol    = FlagAllowSymbols
+)
+
+const (
+	LetterPreset          Flag = FlagAllowUpperOnly | FlagAllowLowerOnly
+	DefaultCharacterFlags Flag = LetterPreset | FlagAllowNumbers | FlagAllowWhitespace | FlagAllowSymbols
+
+	DefaultPreset Flag = DefaultCharacterFlags
 )
 
 type Engine struct {
-	Trie *Trie
+	Trie   *Trie
+	WlTrie *WhitelistTrie
 }
+
+type EngineMode uint8
+
+const (
+	ModeFind EngineMode = 1 << iota
+	ModeClean
+	ModeMask
+)
 
 type Config struct {
 	UniversalFlags Flag
+	EngineModes    EngineMode
 	MaxLength      int
-	Cleaned        bool
 	MaskingByte    byte
+}
+
+func (c *Config) DefaultMaskingByte() {
+	if c == nil {
+		return
+	}
+
+	if c.UniversalFlags&FlagAllowSymbols == 0 {
+		c.MaskingByte = 'x'
+		return
+	}
+
+	c.MaskingByte = '*'
 }
 
 type ViolationReport struct {
 	KeywordViolations int
 
-	MalformedUnicodeViolations int 
-	
+	MalformedUnicodeViolations int
+
 	LetterViolations    int
 	MaxLetterViolations int
 	MinLetterViolations int

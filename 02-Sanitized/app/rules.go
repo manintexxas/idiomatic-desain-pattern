@@ -1,5 +1,7 @@
 package app
 
+const MaxAllowedPayloadSize = 2048
+
 type CostumeRules struct {
 	MinLength     int
 	MaxLength     int
@@ -66,6 +68,11 @@ func ValidateRules(b []byte, cs CostumeRules, c *Config, e *Engine, r *Violation
 
 	length := len(b)
 
+	if length > MaxAllowedPayloadSize {
+		r.TotalViolations = 1
+		return
+	}
+
 	if cs.MinLength > 0 && length < cs.MinLength {
 		diff := cs.MinLength - length
 		r.MinLengthViolations = diff
@@ -88,8 +95,7 @@ func ValidateRules(b []byte, cs CostumeRules, c *Config, e *Engine, r *Violation
 		flag := charTable[b[i]]
 
 		if flag == 0 {
-			r.MalformedUnicodeViolations = 1
-			r.TotalViolations = 1
+			r.TriggerMalformedEarlyExit()
 			return
 		}
 
@@ -136,7 +142,7 @@ func ValidateRules(b []byte, cs CostumeRules, c *Config, e *Engine, r *Violation
 			r.TotalViolations += lower
 		} else {
 			if cs.MaxLower >= 0 && lower > cs.MaxLower {
-				diff := cs.MaxLower - lower
+				diff := lower - cs.MaxLower
 				r.MaxLowerViolations += diff
 				r.TotalViolations += diff
 			}
@@ -207,10 +213,17 @@ func ValidateRules(b []byte, cs CostumeRules, c *Config, e *Engine, r *Violation
 		}
 	}
 
-	if (c.UniversalFlags & FlagAllowKeywords) != 0 && e != nil && e.Trie != nil {
-		if e.Trie.hasMatch(b) {
-			r.KeywordViolations = 1
-			r.TotalViolations++
-		}
-	}
+	if c.UniversalFlags&FlagAllowKeywords != 0 &&
+	e != nil &&
+	e.Trie != nil {
+
+	keywordCount := countUnwhitelistedKeywordMatches(
+		b,
+		e.Trie,
+		e.WlTrie,
+	)
+
+	r.KeywordViolations += keywordCount
+	r.TotalViolations += keywordCount
+}
 }
