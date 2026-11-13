@@ -18,19 +18,20 @@ const (
 	Uppercase		Flag = 1 << iota
 	Lowercase
 	Symbolchar
-	whitespace
+	Whitespace
 	Number
 )
 
 const (
-	MaxASCIIChar = 126
-	CharDot      = '.'
-	CharHyphen   = '-'
-	CharSlash    = '/'
-	CharBackslash = '\\'
-	CharUnderscore = 95
+	MaxFileNameBytes = 0xFF
+	MaxASCIIChar     = 0x7F
+	CharDot          = 0x2E
+	CharHyphen       = 0x2D
+	CharSlash        = 0x2F
+	CharBackslash    = 0x5C
+	CharUnderscore   = 0x5F
+	CharMultipleDot  = 0x3A
 )
-
 type ImageUpload struct {
 	FileName    string
 	DeclareMIME string
