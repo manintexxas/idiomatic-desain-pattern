@@ -1,11 +1,5 @@
 package intake
 
-import (
-	"fmt"
-	"strings"
-
-)
-
 func init() {
 	for i := range charTable {
 		b := byte(i)
@@ -73,8 +67,39 @@ func isAllowedFileNameByte(char byte) bool {
 			char == CharDot
 }
 
-func cleanedInput(name string) string {
-	return strings.ToLower(strings.Trim(name, " "))
+func cleanedInput(s string) string {
+	start := 0
+	for start < len(s) && s[start] == ' ' {
+		start++
+	}
+	end := len(s)
+	for end > start && s[end-1] == ' ' {
+		end--
+	}
+	s = s[start:end]
+
+	hasUpper := false
+	for i := 0; i < len(s); i++ {
+		if s[i] >= 'A' && s[i] <= 'Z' {
+			hasUpper = true
+			break
+		}
+	}
+
+	if !hasUpper {
+		return s
+	}
+
+	buf := make([]byte, len(s))
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		if charTable[c] == Uppercase {
+			c |= 32
+		}
+		buf[i] = c
+	}
+	
+	return string(buf)
 }
 
 func lenCheck(name string, maxByte byte) error {
@@ -83,12 +108,7 @@ func lenCheck(name string, maxByte byte) error {
 	}
 
 	if len(name) > int(maxByte) {
-		return fmt.Errorf(
-			"%w: maximum %d bytes, got %d",
-			ErrFileNameTooLong,
-			MaxFileNameBytes,
-			len(name),
-		)
+		return ErrFileNameTooLong
 	}
 
 	return nil
@@ -96,7 +116,7 @@ func lenCheck(name string, maxByte byte) error {
 
 func tokenCheck(b byte) bool {
 	switch b {
-		case CharPlus, CharHyphen, CharUnderscore, CharDot, CharHash, CharMod, CharAnd, CharQuote:
+		case CharPlus, CharHyphen, CharUnderscore, CharDot, CharHash, CharMod, CharAnd, CharQuote, CharSlash:
 			return  true
 	}
 
