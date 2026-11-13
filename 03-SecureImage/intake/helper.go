@@ -1,5 +1,7 @@
 package intake
 
+import "strings"
+
 func init() {
 	for i := range charTable {
 		b := byte(i)
@@ -27,15 +29,6 @@ func init() {
 			charTable[b] = 0
 		}
 	}
-}
-
-func shouldConvertToUnderscore(char byte) bool {
-	isSym := (charTable[char] & Symbolchar) != 0
-	isSpace := (charTable[char] & Whitespace) != 0
-	
-	allowedExceptions := char == CharDot || char == CharHyphen
-
-	return (isSym || isSpace) && !allowedExceptions
 }
 
 func IsUpper(char byte) bool {
@@ -69,11 +62,11 @@ func isAllowedFileNameByte(char byte) bool {
 
 func cleanedInput(s string) string {
 	start := 0
-	for start < len(s) && s[start] == ' ' {
+	for start < len(s) && isWhiteSpace(s[start]) {
 		start++
 	}
 	end := len(s)
-	for end > start && s[end-1] == ' ' {
+	for end > start && isWhiteSpace(s[end-1]) {
 		end--
 	}
 	s = s[start:end]
@@ -121,4 +114,63 @@ func tokenCheck(b byte) bool {
 	}
 
 	return  false
+}
+
+func isAllowedImageExtension(extension string) bool {
+	return strings.EqualFold(extension, ".jpg") ||
+		strings.EqualFold(extension, ".jpeg") ||
+		strings.EqualFold(extension, ".png") ||
+		strings.EqualFold(extension, ".webp")
+}
+
+func mimeMatchesExtension(format ImageFormat, extension string) bool {
+	switch format {
+	case FormatJPEG:
+		return strings.EqualFold(extension, ".jpg") ||
+			strings.EqualFold(extension, ".jpeg")
+
+	case FormatPNG:
+		return strings.EqualFold(extension, ".png")
+
+	case FormatWebP:
+		return strings.EqualFold(extension, ".webp")
+
+	default:
+		return false
+	}
+}
+
+func isReservedWindowsDeviceName(baseName string) bool {
+	if strings.EqualFold(baseName, "CON") ||
+		strings.EqualFold(baseName, "PRN") ||
+		strings.EqualFold(baseName, "AUX") ||
+		strings.EqualFold(baseName, "NUL") ||
+		strings.EqualFold(baseName, "CLOCK$") ||
+		strings.EqualFold(baseName, "CONIN$") ||
+		strings.EqualFold(baseName, "CONOUT$") {
+		return true
+	}
+
+	if len(baseName) == 4 {
+		prefix := baseName[:3]
+		digit := baseName[3]
+
+		if digit >= '1' && digit <= '9' &&
+			(strings.EqualFold(prefix, "COM") ||
+				strings.EqualFold(prefix, "LPT")) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func containsNonASCIIByte(value string) bool {
+	for i := 0; i < len(value); i++ {
+		if value[i] > MaxASCIIChar {
+			return true
+		}
+	}
+
+	return false
 }
