@@ -58,3 +58,12 @@ func isWhiteSpace(char byte) bool {
 	return charTable[char] & Whitespace != 0
 }
 
+func isAllowedFileNameByte(char byte) bool {
+	return IsLower(char) || 
+			IsUpper(char) || 
+			isNumber(char) || 
+			char == CharHyphen || 
+			char == CharUnderscore || 
+			char == CharDot
+}
+
