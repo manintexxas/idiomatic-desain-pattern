@@ -1,5 +1,7 @@
 package intake
 
+import "strings"
+
 func init() {
 	for i := range charTable {
 		b := byte(i)
@@ -65,5 +67,9 @@ func isAllowedFileNameByte(char byte) bool {
 			char == CharHyphen || 
 			char == CharUnderscore || 
 			char == CharDot
+}
+
+func cleanedInput(name string) string {
+	return strings.ToLower(strings.Trim(name, " "))
 }
 
