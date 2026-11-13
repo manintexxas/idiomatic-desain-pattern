@@ -1,2 +1,3 @@
 go test fuzz v1
 string("imAge/jpg")
+string("photo.jpg")
