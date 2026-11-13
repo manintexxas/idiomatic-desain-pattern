@@ -16,7 +16,7 @@ func NormalizeFileName(name string) (string, error) {
 }
 
 func validateFileName(name string) error {
-	
+
 	if err := lenCheck(name, int(MaxFileNameBytes)); err != nil {
 		return err
 	}
@@ -124,7 +124,7 @@ func validateMIME(mime string) error {
 	for i := 0; i < len(mime); i++ {
 		char := mime[i]
 
-		if charTable[char] == 0 || charTable[char] == Whitespace {
+		if charTable[char] == 0 || isWhiteSpace(char) {
 			return ErrForbbiden
 		}
 
@@ -144,7 +144,7 @@ func validateMIME(mime string) error {
 			}
 		}
 
-		if (charTable[char] & Symbolchar != 0) && !tokenCheck(char) {
+		if IsSymbol(char) && !tokenCheck(char) {
 			if char != CharPlus && char != CharHyphen {
 				return ErrForbbiden
 			}

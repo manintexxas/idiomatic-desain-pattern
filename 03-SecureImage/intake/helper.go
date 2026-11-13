@@ -80,7 +80,7 @@ func cleanedInput(s string) string {
 
 	hasUpper := false
 	for i := 0; i < len(s); i++ {
-		if s[i] >= 'A' && s[i] <= 'Z' {
+		if IsUpper(s[i]) {
 			hasUpper = true
 			break
 		}
@@ -93,7 +93,7 @@ func cleanedInput(s string) string {
 	buf := make([]byte, len(s))
 	for i := 0; i < len(s); i++ {
 		c := s[i]
-		if charTable[c] == Uppercase {
+		if IsUpper(c) {
 			c |= 32
 		}
 		buf[i] = c
@@ -102,12 +102,12 @@ func cleanedInput(s string) string {
 	return string(buf)
 }
 
-func lenCheck(name string, maxByte byte) error {
+func lenCheck(name string, length int) error {
 	if name == "" {
 		return ErrEmptyString
 	}
 
-	if len(name) > int(maxByte) {
+	if len(name) > length {
 		return ErrFileNameTooLong
 	}
 
