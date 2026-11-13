@@ -1,6 +1,10 @@
 package intake
 
-import "strings"
+import (
+	"fmt"
+	"strings"
+
+)
 
 func init() {
 	for i := range charTable {
@@ -73,3 +77,28 @@ func cleanedInput(name string) string {
 	return strings.ToLower(strings.Trim(name, " "))
 }
 
+func lenCheck(name string, maxByte byte) error {
+	if name == "" {
+		return ErrEmptyString
+	}
+
+	if len(name) > int(maxByte) {
+		return fmt.Errorf(
+			"%w: maximum %d bytes, got %d",
+			ErrFileNameTooLong,
+			MaxFileNameBytes,
+			len(name),
+		)
+	}
+
+	return nil
+}
+
+func tokenCheck(b byte) bool {
+	switch b {
+		case CharPlus, CharHyphen, CharUnderscore, CharDot, CharHash, CharMod, CharAnd, CharQuote:
+			return  true
+	}
+
+	return  false
+}
