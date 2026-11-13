@@ -23,14 +23,21 @@ const (
 )
 
 const (
-	MaxFileNameBytes = 0xFF
-	MaxASCIIChar     = 0x7F
-	CharDot          = 0x2E
-	CharHyphen       = 0x2D
-	CharSlash        = 0x2F
-	CharBackslash    = 0x5C
-	CharUnderscore   = 0x5F
-	CharMultipleDot  = 0x3A
+	MaxFileNameBytes byte	= 0xFF
+	MaxMIMEbytes	 byte	= 0x80
+	MaxASCIIChar     byte 	= 0x7F
+	CharDot          byte	= 0x2E
+	CharHyphen       byte	= 0x2D
+	CharSlash        byte	= 0x2F
+	CharBackslash    byte	= 0x5C
+	CharUnderscore   byte	= 0x5F
+	CharColon		 byte	= 0x3A
+	CharSemiColon	 byte	= 0x3B
+	CharPlus  		 byte 	= 0x2B
+    CharHash  		 byte 	= 0x23
+    CharMod   		 byte 	= 0x25
+    CharAnd   		 byte 	= 0x26
+    CharQuote 		 byte 	= 0x27
 )
 type ImageUpload struct {
 	FileName    string
