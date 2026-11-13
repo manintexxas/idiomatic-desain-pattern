@@ -1,6 +1,8 @@
 package intake
 
-import "strings"
+import (
+	"strings"
+)
 
 func init() {
 	for i := range charTable {
@@ -60,17 +62,20 @@ func isAllowedFileNameByte(char byte) bool {
 			char == CharDot
 }
 
-func cleanedInput(s string) string {
+func trimInput(s string) string{
 	start := 0
-	for start < len(s) && isWhiteSpace(s[start]) {
+	for start < len(s) && s[start] == Space {
 		start++
 	}
 	end := len(s)
-	for end > start && isWhiteSpace(s[end-1]) {
+	for end > start && s[end-1] == Space {
 		end--
 	}
-	s = s[start:end]
 
+	return s[start:end]
+}
+
+func toLower(s string) string {
 	hasUpper := false
 	for i := 0; i < len(s); i++ {
 		if IsUpper(s[i]) {
@@ -95,21 +100,35 @@ func cleanedInput(s string) string {
 	return string(buf)
 }
 
-func lenCheck(name string, length int) error {
+func lenCheck(name string) error {
 	if name == "" {
 		return ErrEmptyString
-	}
-
-	if len(name) > length {
-		return ErrFileNameTooLong
 	}
 
 	return nil
 }
 
-func tokenCheck(b byte) bool {
+func maxBytes(name string, t Types) error {
+	length := len(name)
+
+	if t == File {
+		if length > int(MaxFileNameBytes) {
+			return ErrFileNameTooLong
+		}
+	}
+
+	if t == Mime {
+		if length > int(MaxMIMEbytes) {
+			return ErrMIMEToLong
+		}
+	}
+
+	return nil
+}
+
+func isAllowedMIMESymbol(b byte) bool {
 	switch b {
-		case CharPlus, CharHyphen, CharUnderscore, CharDot, CharHash, CharMod, CharAnd, CharQuote, CharSlash:
+		case CharPlus, CharHyphen, CharUnderscore, CharDot, CharHash, CharMod, CharAnd, CharQuote:
 			return  true
 	}
 
@@ -123,22 +142,24 @@ func isAllowedImageExtension(extension string) bool {
 		strings.EqualFold(extension, ".webp")
 }
 
-func mimeMatchesExtension(format ImageFormat, extension string) bool {
-	switch format {
-	case FormatJPEG:
+
+func mimeMatchesExtension(mime string, extension string) bool {
+	switch mime {
+	case "image/jpeg":
 		return strings.EqualFold(extension, ".jpg") ||
 			strings.EqualFold(extension, ".jpeg")
 
-	case FormatPNG:
+	case "image/png":
 		return strings.EqualFold(extension, ".png")
 
-	case FormatWebP:
+	case "image/webp":
 		return strings.EqualFold(extension, ".webp")
 
 	default:
 		return false
 	}
 }
+
 
 func isReservedWindowsDeviceName(baseName string) bool {
 	if strings.EqualFold(baseName, "CON") ||
@@ -165,12 +186,48 @@ func isReservedWindowsDeviceName(baseName string) bool {
 	return false
 }
 
-func containsNonASCIIByte(value string) bool {
+func containsNonASCIIAllowed(value string) error {
 	for i := 0; i < len(value); i++ {
-		if value[i] > MaxASCIIChar {
-			return true
+		if charTable[value[i]] == 0 || value[i] > MaxASCIIChar {
+			return ErrForbbiden
 		}
 	}
 
-	return false
+	return nil
+}
+
+func isNotAllowedSymbol(b byte) bool {
+	return b == CharBackslash || b == CharSlash || b == CharColon
+}
+
+func baseCharCheck(input string, t Types) error {
+	if err := lenCheck(input); err != nil {
+		return err
+	}
+
+	if err := maxBytes(input, t); err != nil {
+		return err
+	}
+
+	if err := containsNonASCIIAllowed(input); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func validateMetadataConsistency( mime string, fileName string ) error {
+	dotIndex := strings.LastIndexByte(fileName, CharDot)
+
+	if dotIndex <= 0 || dotIndex == len(fileName)-1 {
+		return ErrInvalidFileName
+	}
+
+	extension := fileName[dotIndex:]
+
+	if !mimeMatchesExtension(mime, extension) {
+		return ErrMIMEFormatMismatch
+	}
+
+	return nil
 }
