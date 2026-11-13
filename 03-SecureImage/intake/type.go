@@ -1,48 +1,43 @@
 package intake
 
-type (
-	unknown string
-	jpeg    string
-	png     string
-	webp    string
+type ImageFormat string
+
+const (
+	FormatUnknown	ImageFormat = "unknown"
+	FormatJPEG		ImageFormat = "jpeg"
+	FormatPNG		ImageFormat = "png"
+	FormatWebP		ImageFormat = "webp"
 )
 
-type imageFormat struct {
-	formatUnknown unknown
-	formatJPEG	  jpeg
-	formatPNG	  png
-	formatWebP	  webp
+type ImageUpload struct {
+	FileName    string
+	DeclareMIME string
+	Content     []byte
 }
 
-type imageUpload struct {
-	fileName    string
-	declareMIME string
-	content     []byte
+type AcceptedImage struct {
+	OriginalIndex	int
+	FileName		string
+	Format			ImageFormat
+	Content			[]byte
 }
 
-type acceptedImage struct {
-	originalIndex	int
-	fileName		string
-	format			imageFormat
-	content			[]byte
+type RejectedImage struct {
+	OriginalIndex	int
+	FileName		string
+	Reason			error
 }
 
-type rejectedImage struct {
-	originalIndex	int
-	fileName		string
-	reason			error
+type BatchReport struct {
+	Accepted		[]AcceptedImage
+	Rejected		[]RejectedImage
+	Batches			[][]AcceptedImage
 }
 
-type batchReport struct {
-	accepted		[]acceptedImage
-	rejected		[]rejectedImage
-	bartches		[][]acceptedImage
-}
-
-type batchSummary struct {
-	totalInput		int
-	acceptedCount	int
-	rejectedCount	int
-	acceptedBytes	int64
-	batchCount		int
+type BatchSummary struct {
+	TotalInput		int
+	AcceptedCount	int
+	RejectedCount	int
+	AcceptedBytes	int64
+	BatchCount		int
 }
