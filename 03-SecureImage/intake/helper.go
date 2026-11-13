@@ -37,3 +37,24 @@ func shouldConvertToUnderscore(char byte) bool {
 
 	return (isSym || isSpace) && !allowedExceptions
 }
+
+func IsUpper(char byte) bool {
+	return charTable[char] & Uppercase != 0
+}
+
+func IsLower(char byte) bool {
+	return charTable[char] & Lowercase != 0
+}
+
+func IsSymbol(char byte) bool {
+	return charTable[char] & Symbolchar != 0
+}
+
+func isNumber(char byte) bool {
+	return charTable[char] & Number != 0
+}
+
+func isWhiteSpace(char byte) bool {
+	return charTable[char] & Whitespace != 0
+}
+
