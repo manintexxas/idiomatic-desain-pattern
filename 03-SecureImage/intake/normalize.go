@@ -1,6 +1,7 @@
 package intake
 
 import (
+	"path/filepath"
 	"strings"
 )
 
@@ -15,8 +16,25 @@ func NormalizeFileName(name string) (string, error) {
 }
 
 func validateFileName(name string) error {
-	if err := lenCheck(name, MaxFileNameBytes); err != nil {
+	
+	if err := lenCheck(name, int(MaxFileNameBytes)); err != nil {
 		return err
+	}
+
+	dotCount := 0
+	for i := 0; i < len(name); i++ {
+		if name[i] == CharDot {
+			dotCount++
+		}
+	}
+
+	if dotCount != 1 {
+		return ErrInvalidFileName
+	}
+
+	ext := strings.ToLower(filepath.Ext(name))
+	if ext != ".jpg" && ext != ".jpeg" && ext != ".png" && ext != ".webp" {
+		return ErrInvalidFileName
 	}
 
 	for i := 0; i < len(name); i++ {
@@ -35,8 +53,7 @@ func validateFileName(name string) error {
 		case !isAllowedFileNameByte(char):
 			return ErrInvalidFileName
 
-		case char == CharDot &&
-			(i == 0 || i == len(name)-1 || name[i-1] == CharDot):
+		case char == CharDot && (i == 0 || i == len(name)-1):
 			return ErrForbbiden
 		}
 	}
@@ -44,45 +61,61 @@ func validateFileName(name string) error {
 	return nil
 }
 
-func NormalizeMIME(mime string) (string, error) {
+func NormalizeMIME(mime string, fileName string) (string, ImageFormat, error) {
 	mime = cleanedInput(mime)
 
 	if !strings.HasPrefix(mime, "image/") {
-		return "", ErrMIMEFormatMismatch
+		return "", FormatUnknown, ErrMIMEFormatMismatch
 	}
 
 	if err := validateMIME(mime); err != nil {
-		return "", err
+		return "", FormatUnknown, err
 	}
 
 	subType := strings.TrimPrefix(mime, "image/")
-
 	var format ImageFormat
+	var canonicalMime string
 
 	switch subType {
 	case "jpeg", "jpg":
 		format = FormatJPEG
-		mime = "image/jpeg" 
+		canonicalMime = "image/jpeg"
 
 	case "png":
 		format = FormatPNG
-		mime = "image/png"
+		canonicalMime = "image/png"
 
 	case "webp":
 		format = FormatWebP
-		mime = "image/webp"
+		canonicalMime = "image/webp"
 
 	default:
-		return "", ErrMIMEFormatMismatch
+		return "", FormatUnknown, ErrMIMEFormatMismatch
 	}
 
-	_ = format
+	ext := strings.ToLower(filepath.Ext(fileName))
+	match := false
+	
+	switch format {
+	case FormatJPEG:
+		match = (ext == ".jpg" || ext == ".jpeg")
 
-	return mime, nil
+	case FormatPNG:
+		match = (ext == ".png")
+
+	case FormatWebP:
+		match = (ext == ".webp")
+	}
+
+	if !match {
+		return "", FormatUnknown, ErrMIMEFormatMismatch
+	}
+
+	return canonicalMime, format, nil
 }
 
 func validateMIME(mime string) error {
-	if err := lenCheck(mime, MaxMIMEbytes); err != nil {
+	if err := lenCheck(mime, int(MaxMIMEbytes)); err != nil {
 		return err
 	}
 
