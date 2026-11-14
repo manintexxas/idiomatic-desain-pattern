@@ -110,7 +110,7 @@ func toLower(s string) string {
 
 func lenCheck(name string) error {
 	if name == "" {
-		return ErrEmptyString
+		return ErrEmptyMetadata
 	}
 
 	return nil
@@ -120,14 +120,14 @@ func maxBytes(name string, t Types) error {
 	length := len(name)
 
 	if t == File {
-		if length > int(MaxFileNameBytes) {
+		if length > MaxFileNameBytes {
 			return ErrFileNameTooLong
 		}
 	}
 
 	if t == Mime {
-		if length > int(MaxMIMEbytes) {
-			return ErrMIMEToLong
+		if length > MaxMIMEbytes {
+			return ErrMIMETooLong
 		}
 	}
 
@@ -197,19 +197,15 @@ func isReservedWindowsDeviceName(baseName string) bool {
 func containsNonASCIIAllowed(value string) error {
 	for i := 0; i < len(value); i++ {
 		if charTable[value[i]] == 0 || value[i] > MaxASCIIChar {
-			return ErrForbbiden
+			return ErrForbiddenCharacter
 		}
 	}
 
 	return nil
 }
 
-func baseCharCheck(input string, t Types) error {
+func baseCharCheck(input string) error {
 	if err := lenCheck(input); err != nil {
-		return err
-	}
-
-	if err := maxBytes(input, t); err != nil {
 		return err
 	}
 
@@ -230,7 +226,7 @@ func validateMetadataConsistency( mime string, fileName string ) error {
 	extension := fileName[dotIndex:]
 
 	if !mimeMatchesExtension(mime, extension) {
-		return ErrMIMEFormatMismatch
+		return ErrMIMEMismatchFileName
 	}
 
 	return nil
