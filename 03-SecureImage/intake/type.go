@@ -1,56 +1,18 @@
 package intake
 
-type (
-	ImageFormat string
-	Flag		uint8
-	Types		uint8
-)
-
-var charTable[256]Flag
+type ImageFormat string
 
 const (
-	FormatUnknown	ImageFormat = "unknown"
+	FormatUnknown	ImageFormat = ""
 	FormatJPEG		ImageFormat = "jpeg"
 	FormatPNG		ImageFormat = "png"
 	FormatWebP		ImageFormat = "webp"
 )
 
-const (
-	Uppercase		Flag = 1 << iota
-	Lowercase
-	Symbolchar
-	Whitespace
-	Number
-)
-
-const (
-	MaxFileNameBytes byte	= 0xFF
-	MaxMIMEbytes	 byte	= 0x80
-	MaxASCIIChar     byte 	= 0x7F
-	CharDot          byte	= 0x2E
-	CharHyphen       byte	= 0x2D
-	CharSlash        byte	= 0x2F
-	CharBackslash    byte	= 0x5C
-	CharUnderscore   byte	= 0x5F
-	CharColon		 byte	= 0x3A
-	CharSemiColon	 byte	= 0x3B
-	CharPlus  		 byte 	= 0x2B
-    CharHash  		 byte 	= 0x23
-    CharMod   		 byte 	= 0x25
-    CharAnd   		 byte 	= 0x26
-    CharQuote 		 byte 	= 0x27
-	Space 			 byte	= 0x20
-)
-
-const (
-	Mime 	Types = 1 << iota
-	File
-)
-
 type ImageUpload struct {
-	FileName    string
-	DeclareMIME string
-	Content     []byte
+	FileName    	string
+	DeclaredMIME 	string
+	Content     	[]byte
 }
 
 type AcceptedImage struct {
