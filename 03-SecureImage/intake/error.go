@@ -5,8 +5,9 @@ import "errors"
 var (
 	ErrEmptyString		  = errors.New("Input cannot be empty")
 	ErrForbbiden		  = errors.New("Contains forbiden char")
-	ErrInvalidFileName 	  = errors.New("invalid file name")
-	ErrFileNameTooLong    = errors.New("file name exceeds maximum length")
+	ErrInvalidFileName 	  = errors.New("Invalid file name")
+	ErrFileNameTooLong	  = errors.New("File name exceeds maximum length")
+	ErrMIMEToLong		  = errors.New("MIME exceed maximum length")
 	ErrMultibyteDetec	  = errors.New("Multibyte not allowed")
 	ErrInvalidConfig      = errors.New("Configure is invalid")
 	ErrEmptyPayload       = errors.New("Payload is empty")
