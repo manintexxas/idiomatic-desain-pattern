@@ -2,6 +2,7 @@ package intake
 
 import (
 	"strings"
+
 )
 
 func init() {
@@ -34,23 +35,27 @@ func init() {
 }
 
 func IsUpper(char byte) bool {
-	return charTable[char] & Uppercase != 0
+	return charTable[char] == Uppercase
 }
 
 func IsLower(char byte) bool {
-	return charTable[char] & Lowercase != 0
+	return charTable[char] == Lowercase
 }
 
 func IsSymbol(char byte) bool {
-	return charTable[char] & Symbolchar != 0
+	return charTable[char] == Symbolchar
 }
 
 func isNumber(char byte) bool {
-	return charTable[char] & Number != 0
+	return charTable[char] == Number
 }
 
 func isWhiteSpace(char byte) bool {
-	return charTable[char] & Whitespace != 0
+	return charTable[char] == Whitespace
+}
+
+func isSymbolOrNonASCII(b byte) bool {
+	return IsSymbol(b) || charTable[b] == 0
 }
 
 func isAllowedFileNameByte(char byte) bool {
@@ -102,6 +107,7 @@ func toLower(s string) string {
 		if IsUpper(c) {
 			c |= 32
 		}
+
 		buf[i] = c
 	}
 	
@@ -227,6 +233,75 @@ func validateMetadataConsistency( mime string, fileName string ) error {
 
 	if !mimeMatchesExtension(mime, extension) {
 		return ErrMIMEMismatchFileName
+	}
+
+	return nil
+}
+
+func isAllowedExt(s string) error {
+	for i := range len(ext) {
+		if ImageFormat(s) == ext[i]   {
+			return nil
+		}
+	}
+
+	return ErrExtDoesntMatch
+}
+
+func fileNamePatternCheck(s string) error {
+	n := len(s) 
+
+	if n < 5 {
+		return ErrFileNameTooShort
+	}
+
+	if isSymbolOrNonASCII(s[0]) || !isAllowedFileNameByte(s[0]) {
+		return ErrForbiddenCharacter
+	}
+
+	dotIndex := -1
+	limit := max(n - 1 - MaxExtScan, 1)
+
+	for i := n - 1; i >= limit; i-- {
+		if s[i] == CharDot {
+			dotIndex = i
+			break
+		}
+	}
+
+	if dotIndex <= 0 || dotIndex >= n-1 {
+		return ErrMalformedMetadata
+	}
+
+	if s[dotIndex-1] == CharDot {
+		return ErrUnnecessaryDot
+	}
+	
+	extCheck := s[dotIndex+1:]
+	if err := isAllowedExt(extCheck); err != nil {
+		return err
+	}
+
+	if isReservedWindowsDeviceName(s[:dotIndex]) {
+		return ErrMalformedMetadata
+	}
+
+	prefixCheck := s[:dotIndex]
+	for i := range len(prefixCheck) {
+		if !isAllowedFileNameByte(prefixCheck[i]) {
+			return ErrForbiddenCharacter
+		}
+
+		if prefixCheck[i] == CharDot && i < (len(prefixCheck) - 1) {
+			if prefixCheck[i+1] == CharDot {
+				return ErrUnnecessaryDot
+			}
+
+			doubleDot := prefixCheck[i+1:dotIndex]
+			if err := isAllowedExt(doubleDot); err == nil && len(doubleDot) < 5 {
+				return ErrMalformedMetadata 
+			}
+		}
 	}
 
 	return nil
