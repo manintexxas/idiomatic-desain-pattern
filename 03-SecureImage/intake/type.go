@@ -3,6 +3,7 @@ package intake
 type (
 	ImageFormat string
 	Flag		uint8
+	Types		uint8
 )
 
 var charTable[256]Flag
@@ -38,7 +39,14 @@ const (
     CharMod   		 byte 	= 0x25
     CharAnd   		 byte 	= 0x26
     CharQuote 		 byte 	= 0x27
+	Space 			 byte	= 0x20
 )
+
+const (
+	Mime 	Types = 1 << iota
+	File
+)
+
 type ImageUpload struct {
 	FileName    string
 	DeclareMIME string
