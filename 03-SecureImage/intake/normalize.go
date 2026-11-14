@@ -83,18 +83,8 @@ func validateFileName(name string) error {
 		char := name[i]
 
 		switch {
-		case char > MaxASCIIChar:
-			return ErrForbbiden
-
-		case charTable[char] == 0:
-			return ErrForbbiden
 
 		case isWhiteSpace(char):
-			return ErrForbbiden
-
-		case char == CharBackslash ||
-			char == CharSlash ||
-			char == CharColon:
 			return ErrForbbiden
 
 		case !isAllowedFileNameByte(char):
