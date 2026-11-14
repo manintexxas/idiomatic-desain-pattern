@@ -4,9 +4,13 @@ package intake
 import "strings"
 
 func NormalizeFileName(name string) (string, error) {
+	if err := maxBytes(name, File); err != nil {
+		return "", err
+	}
+
 	name = trimInput(name)
 
-	if err := baseCharCheck(name, File); err != nil {
+	if err := baseCharCheck(name); err != nil {
 		return "", err
 	}
 
@@ -22,7 +26,11 @@ func NormalizeFileName(name string) (string, error) {
 }
 
 func NormalizeMIME(mime string) (string, error) {
-	if err := baseCharCheck(mime, Mime); err != nil {
+	if err := maxBytes(mime, Mime); err != nil {
+		return "", err
+	}
+	
+	if err := baseCharCheck(mime); err != nil {
 		return "", err
 	}
 
@@ -33,7 +41,7 @@ func NormalizeMIME(mime string) (string, error) {
 	}
 
 	if !strings.HasPrefix(mime, "image/") {
-		return "", ErrMIMEFormatMismatch
+		return "", ErrInvalidMIME
 	}
 
 	subType := strings.TrimPrefix(mime, "image/")
@@ -51,7 +59,7 @@ func NormalizeMIME(mime string) (string, error) {
 		canonicalMIME = "image/webp"
 
 	default:
-		return "", ErrMIMEFormatMismatch
+		return "", ErrInvalidMIME
 	}
 
 	return canonicalMIME, nil
@@ -85,10 +93,10 @@ func validateFileName(name string) error {
 		switch {
 
 		case isWhiteSpace(char):
-			return ErrForbbiden
+			return ErrForbiddenCharacter
 
 		case !isAllowedFileNameByte(char):
-			return ErrForbbiden
+			return ErrForbiddenCharacter
 		}
 
 		if char == CharDot {
@@ -102,7 +110,7 @@ func validateFileName(name string) error {
 	}
 
 	if dotIndex == 0 {
-		return ErrForbbiden
+		return ErrForbiddenCharacter
 	}
 
 	if dotIndex == len(name)-1 {
@@ -117,7 +125,7 @@ func validateFileName(name string) error {
 	}
 
 	if isReservedWindowsDeviceName(baseName) {
-		return ErrForbbiden
+		return ErrInvalidMIME
 	}
 
 	return nil
@@ -132,26 +140,26 @@ func validateMIME(mime string) error {
 		if char > MaxASCIIChar ||
 			charTable[char] == 0 ||
 			isWhiteSpace(char) {
-			return ErrForbbiden
+			return ErrForbiddenCharacter
 		}
 
 		if char == CharSlash {
 			slashCount++
 
 			if slashCount > 1 || i == 0 || i == len(mime)-1 {
-				return ErrForbbiden
+				return ErrForbiddenCharacter
 			}
 
 			continue
 		}
 
 		if IsSymbol(char) && !isAllowedMIMESymbol(char) {
-			return ErrForbbiden
+			return ErrMIMEContainsInvalidToken
 		}
 	}
 
 	if slashCount != 1 {
-		return ErrForbbiden
+		return ErrForbiddenCharacter
 	}
 
 	return nil
