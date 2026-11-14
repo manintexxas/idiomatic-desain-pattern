@@ -5,12 +5,16 @@ import "errors"
 
 var (
     ErrEmptyMetadata					= errors.New("Metadata cannot be empty")
+	ErrMalformedMetadata				= errors.New("Malformed metadata detect")
+	ErrExtDoesntMatch					= errors.New("Extension doesn't match")
 
+	ErrFileNameTooShort					= errors.New("Filename too short")
     ErrForbiddenCharacter				= errors.New("Contains forbidden character")
     ErrInvalidFileName					= errors.New("Invalid file name")
     ErrFileNameContainsInvalidSymbol 	= errors.New("Filename contains invalid symbol")
     ErrFileNameTooLong 					= errors.New("Filename exceeds maximum length")
 
+	ErrMIMETooShort						= errors.New("MIME too short")
     ErrInvalidMIME 						= errors.New("Invalid MIME")
     ErrMIMETooLong 						= errors.New("MIME exceeds maximum length")
     ErrMIMEContainsInvalidToken 		= errors.New("MIME contains invalid token")
@@ -29,4 +33,6 @@ var (
     ErrDecodeFailed 					= errors.New("Image decoding failed")
 
     ErrBatchLimitExceeded 				= errors.New("Batch exceeds maximum file count")
+
+	ErrUnnecessaryDot					= errors.New("Unneccessary dot char detect")
 )
