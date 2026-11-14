@@ -72,7 +72,15 @@ func trimInput(s string) string{
 		end--
 	}
 
-	return s[start:end]
+	if start == 0 && end == len(s) {
+		return s
+	}
+
+	if start == end {
+		return ""
+	}
+
+	return strings.Clone(s[start:end])
 }
 
 func toLower(s string) string {
