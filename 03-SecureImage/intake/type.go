@@ -5,9 +5,12 @@ type ImageFormat string
 const (
 	FormatUnknown	ImageFormat = ""
 	FormatJPEG		ImageFormat = "jpeg"
+	FormatJPG		ImageFormat = "jpg"
 	FormatPNG		ImageFormat = "png"
 	FormatWebP		ImageFormat = "webp"
 )
+
+var ext = [4]ImageFormat{FormatJPEG, FormatJPG, FormatPNG, FormatWebP}
 
 type ImageUpload struct {
 	FileName    	string
