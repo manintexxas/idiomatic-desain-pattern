@@ -196,10 +196,6 @@ func containsNonASCIIAllowed(value string) error {
 	return nil
 }
 
-func isNotAllowedSymbol(b byte) bool {
-	return b == CharBackslash || b == CharSlash || b == CharColon
-}
-
 func baseCharCheck(input string, t Types) error {
 	if err := lenCheck(input); err != nil {
 		return err
