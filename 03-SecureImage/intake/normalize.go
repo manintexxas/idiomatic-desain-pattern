@@ -84,48 +84,8 @@ func NormalizeImageMetadata( mime string, fileName string ) (string, string, err
 }
 
 func validateFileName(name string) error {
-	dotIndex := -1
-	dotCount := 0
-
-	for i := 0; i < len(name); i++ {
-		char := name[i]
-
-		switch {
-
-		case isWhiteSpace(char):
-			return ErrForbiddenCharacter
-
-		case !isAllowedFileNameByte(char):
-			return ErrForbiddenCharacter
-		}
-
-		if char == CharDot {
-			dotCount++
-			dotIndex = i
-		}
-	}
-
-	if dotCount != 1 {
-		return ErrInvalidFileName
-	}
-
-	if dotIndex == 0 {
-		return ErrForbiddenCharacter
-	}
-
-	if dotIndex == len(name)-1 {
-		return ErrInvalidFileName
-	}
-
-	baseName := name[:dotIndex]
-	extension := name[dotIndex:]
-
-	if !isAllowedImageExtension(extension) {
-		return ErrInvalidFileName
-	}
-
-	if isReservedWindowsDeviceName(baseName) {
-		return ErrInvalidMIME
+	if err := fileNamePatternCheck(name); err != nil {
+		return err
 	}
 
 	return nil
