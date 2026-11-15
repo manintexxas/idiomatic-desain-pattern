@@ -1,8 +1,8 @@
-package normalize
+package intake
 
 import (
-	i "03-SecureImage/intake"
-	"strings"
+		"strings"
+		i "03-SecureImage/intake"
 )
 
 func trims(s string) string {

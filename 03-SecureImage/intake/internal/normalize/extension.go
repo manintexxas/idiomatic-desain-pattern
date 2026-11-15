@@ -1,4 +1,4 @@
-package normalize
+package intake
 
 func isDangerousExt(s string) bool {
 	switch s {
