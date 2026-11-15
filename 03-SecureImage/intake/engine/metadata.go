@@ -1,21 +1,21 @@
 package engine
 
-import norm "03-SecureImage/intake/internal/normalize"
+import (
+	norm "03-SecureImage/intake/internal/normalize"
+	in "03-SecureImage/intake"
+)
 
-func NormalizeImageMetadata(mime string, fileName string) (string, string, error) {
+
+func NormalizeImageMetadata(mime string, fileName string) in.Status {
 	canonicalMIME, err := norm.NormalizeMIME(mime)
 	if err != nil {
-		return "", "", err
+		return in.REJECT
 	}
 
 	normalizedFileName, err := norm.NormalizeFileName(fileName)
 	if err != nil {
-		return "", "", err
+		return in.REJECT
 	}
 
-	if err := norm.ValidateMetadataConsistency(canonicalMIME, normalizedFileName); err != nil {
-		return "", "", err
-	}
-
-	return normalizedFileName, canonicalMIME, nil
+	return norm.ValidateMetadataConsistency(canonicalMIME, normalizedFileName)
 }
