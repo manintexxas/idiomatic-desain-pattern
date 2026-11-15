@@ -6,15 +6,15 @@ import (
 )
 
 
-func NormalizeImageMetadata(mime string, fileName string) in.Status {
+func NormalizeImageMetadata(mime string, fileName string) ([2]in.ImageFormat, in.Status, error) {
 	canonicalMIME, err := norm.NormalizeMIME(mime)
 	if err != nil {
-		return in.REJECT
+		return [2]in.ImageFormat{}, in.REJECT, err
 	}
 
 	normalizedFileName, err := norm.NormalizeFileName(fileName)
 	if err != nil {
-		return in.REJECT
+		return [2]in.ImageFormat{}, in.REJECT, err
 	}
 
 	return norm.ValidateMetadataConsistency(canonicalMIME, normalizedFileName)
