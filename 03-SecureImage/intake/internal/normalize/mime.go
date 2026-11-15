@@ -4,7 +4,7 @@ import ("strings"
 		in "03-SecureImage/intake"
 )
 
-func normalizeMIME(mime string) (string, error) {
+func NormalizeMIME(mime string) (string, error) {
 	if err := maxLen(mime, Mime); err != nil {
 		return "", err
 	}
