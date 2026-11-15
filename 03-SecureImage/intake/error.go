@@ -36,3 +36,8 @@ var (
 
 	ErrUnnecessaryDot					= errors.New("Unneccessary dot char detect")
 )
+
+var (
+    ErrSignatureTooShort                = errors.New("Signature too short")
+    ErrMismatchSignature                = errors.New("Signature format mismatch")
+)
