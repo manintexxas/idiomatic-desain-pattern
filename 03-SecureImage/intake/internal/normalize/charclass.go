@@ -1,4 +1,4 @@
-package intake
+package normalize
 
 type (
 	Flag  uint8

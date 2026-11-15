@@ -1,4 +1,4 @@
-package intake
+package normalize
 
 import (
 	"strings"
@@ -147,7 +147,7 @@ func containsNonASCIIAllowed(value string) error {
 }
 
 func baseCharCheck(input string) error {
-	if err := lenCheck(input); err != nil {
+	if err := length(input); err != nil {
 		return err
 	}
 
