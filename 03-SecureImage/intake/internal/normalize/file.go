@@ -1,6 +1,7 @@
 package normalize
 
-import ("strings"
+import (
+		"strings"
 		in "03-SecureImage/intake"
 )
 

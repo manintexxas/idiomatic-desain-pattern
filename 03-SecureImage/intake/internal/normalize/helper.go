@@ -1,68 +1,38 @@
 package normalize
 
 import (
-	"strings"
 	in "03-SecureImage/intake"
-
+	"strings"
 )
 
-func init() {
-	for i := range charTable {
-		b := byte(i)
-
-		switch {
-		case b >= '0' && b <= '9':
-			charTable[b] = Number
-
-		case b >= 'A' && b <= 'Z':
-			charTable[b] = Uppercase
-
-		case b >= 'a' && b <= 'z':
-			charTable[b] = Lowercase
-
-		case (b >= 33 && b <= 47),
-			(b >= 58 && b <= 64),
-			(b >= 91 && b <= 96),
-			(b >= 123 && b <= 126):
-			charTable[b] = Symbolchar
-
-		case (b >= 9 && b <= 13), b == 32:
-			charTable[b] = Whitespace
-
-		default:
-			charTable[b] = 0
-		}
-	}
-}
-
 func IsUpper(char byte) bool {
-	return charTable[char] == Uppercase
+	return in.CharTable[char] == in.Uppercase
 }
 
 func IsLower(char byte) bool {
-	return charTable[char] == Lowercase
+	return in.CharTable[char] == in.Lowercase
 }
 
 func IsSymbol(char byte) bool {
-	return charTable[char] == Symbolchar
+	return in.CharTable[char] == in.Symbolchar
 }
 
 func IsNumber(char byte) bool {
-	return charTable[char] == Number
+	return in.CharTable[char] == in.Number
 }
 
 func isWhiteSpace(char byte) bool {
-	return charTable[char] == Whitespace
+	return in.CharTable[char] == in.Whitespace
 }
 
 func IsSymbolOrNonASCII(b byte) bool {
-	return IsSymbol(b) || charTable[b] == 0
+	return IsSymbol(b) || in.CharTable[b] == 0
 }
 
 func IsAllowedFileNameSymbol(b byte) bool {
 	switch b {
-		case CharHyphen, CharUnderscore, CharDot, CharLParen, CharRParen:
-			return true
+	case CharHyphen, CharUnderscore, CharDot, CharLParen, CharRParen:
+		return true
 	}
 
 	return false
@@ -78,15 +48,15 @@ func IsAllowedFileNameByte(b byte) bool {
 
 func IsAllowedMIMESymbol(b byte) bool {
 	switch b {
-		case CharPlus, CharHyphen, CharUnderscore, CharDot, CharHash, CharMod, CharAnd, CharQuote:
-			return  true
+	case CharPlus, CharHyphen, CharUnderscore, CharDot, CharHash, CharMod, CharAnd, CharQuote:
+		return true
 	}
 
-	return  false
+	return false
 }
 
 func IsReservedWindowsDeviceName(baseName string) bool {
-	if strings.EqualFold(baseName, "CON") ||strings.EqualFold(baseName, "PRN") ||
+	if strings.EqualFold(baseName, "CON") || strings.EqualFold(baseName, "PRN") ||
 		strings.EqualFold(baseName, "AUX") ||
 		strings.EqualFold(baseName, "NUL") ||
 		strings.EqualFold(baseName, "CLOCK$") ||
@@ -111,7 +81,7 @@ func IsReservedWindowsDeviceName(baseName string) bool {
 
 func IsAllowedExt(s string) error {
 	for i := range len(ext) {
-		if s == ext[i]   {
+		if s == ext[i] {
 			return nil
 		}
 	}
@@ -119,26 +89,9 @@ func IsAllowedExt(s string) error {
 	return in.ErrExtDoesntMatch
 }
 
-func mimeMatchesExtension(mime string, extension string) bool {
-	switch mime {
-	case "image/jpeg":
-		return strings.EqualFold(extension, ".jpg") ||
-			strings.EqualFold(extension, ".jpeg")
-
-	case "image/png":
-		return strings.EqualFold(extension, ".png")
-
-	case "image/webp":
-		return strings.EqualFold(extension, ".webp")
-
-	default:
-		return false
-	}
-}
-
 func containsNonASCIIAllowed(value string) error {
 	for i := 0; i < len(value); i++ {
-		if charTable[value[i]] == 0 || value[i] > MaxASCIIChar {
+		if in.CharTable[value[i]] == 0 || value[i] > MaxASCIIChar {
 			return in.ErrForbiddenCharacter
 		}
 	}
@@ -157,15 +110,43 @@ func baseCharCheck(input string) error {
 
 	return nil
 }
+func ParseImageFormat(raw string) in.ImageFormat {
+	switch raw {
+	case string(in.FormatJPEG):
+		return in.FormatJPEG
 
-func ValidateMetadataConsistency( mime string, fileName string ) in.Status {
+	case string(in.FormatJPG):
+		return in.FormatJPG
+
+	case string(in.FormatPNG):
+		return in.FormatPNG
+
+	case string(in.FormatWebP):
+		return in.FormatWebP
+	default:
+
+		return in.FormatUnknown
+	}
+}
+
+func ValidateMetadataConsistency(mime string, fileName string) ([2]in.ImageFormat, in.Status, error) {
 	dotIndex := strings.LastIndexByte(fileName, CharDot)
+	slashIndex := strings.LastIndexByte(mime, CharSlash)
 
-	extension := fileName[dotIndex:]
+	fileFmt := ParseImageFormat(fileName[dotIndex+1:])
+	mimeFmt := ParseImageFormat(mime[slashIndex+1:])
 
-	if !mimeMatchesExtension(mime, extension) {
-		return in.FLAG
+	if fileFmt == in.FormatUnknown || mimeFmt == in.FormatUnknown {
+		return [2]in.ImageFormat{}, in.REJECT, in.ErrMalformedMetadata
 	}
 
-	return in.PASS
+	if fileFmt == mimeFmt || isSameFamily(fileFmt, mimeFmt) {
+		return [2]in.ImageFormat{fileFmt}, in.PASS, nil
+	}
+
+	return [2]in.ImageFormat{fileFmt, mimeFmt}, in.FLAG, in.ErrMIMEMismatchFileName
+}
+
+func isSameFamily(a, b in.ImageFormat) bool {
+	return (a == in.FormatJPG && b == in.FormatJPEG) || (a == in.FormatJPEG && b == in.FormatJPG)
 }

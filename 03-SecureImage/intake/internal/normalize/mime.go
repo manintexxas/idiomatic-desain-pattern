@@ -51,7 +51,7 @@ func validateMIME(mime string) error {
 		char := mime[i]
 
 		if char > MaxASCIIChar ||
-			charTable[char] == 0 ||
+			in.CharTable[char] == 0 ||
 			isWhiteSpace(char) {
 			return in.ErrForbiddenCharacter
 		}
