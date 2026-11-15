@@ -158,7 +158,7 @@ func baseCharCheck(input string) error {
 	return nil
 }
 
-func validateMetadataConsistency( mime string, fileName string ) error {
+func ValidateMetadataConsistency( mime string, fileName string ) error {
 	dotIndex := strings.LastIndexByte(fileName, CharDot)
 
 	if dotIndex <= 0 || dotIndex == len(fileName)-1 {
