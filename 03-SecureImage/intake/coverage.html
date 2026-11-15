@@ -1,0 +1,502 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>intake: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">03-SecureImage/intake/helper.go (82.8%)</option>
+				
+				<option value="file1">03-SecureImage/intake/normalize.go (90.1%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">no coverage</span>
+				<span class="cov1">low coverage</span>
+				<span class="cov2">*</span>
+				<span class="cov3">*</span>
+				<span class="cov4">*</span>
+				<span class="cov5">*</span>
+				<span class="cov6">*</span>
+				<span class="cov7">*</span>
+				<span class="cov8">*</span>
+				<span class="cov9">*</span>
+				<span class="cov10">high coverage</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package intake
+
+import (
+        "strings"
+)
+
+func init() {
+        <span class="cov1" title="1">for i := range charTable </span>{
+                <span class="cov4" title="256">b := byte(i)
+</span>
+                <span class="cov4" title="256">switch </span>{
+                case b &gt;= '0' &amp;&amp; b &lt;= '9':
+                        <span class="cov2" title="10">charTable[b] = Number</span>
+
+                case b &gt;= 'A' &amp;&amp; b &lt;= 'Z':
+                        <span class="cov3" title="26">charTable[b] = Uppercase</span>
+
+                case b &gt;= 'a' &amp;&amp; b &lt;= 'z':
+                        <span class="cov3" title="26">charTable[b] = Lowercase</span>
+
+                case (b &gt;= 33 &amp;&amp; b &lt;= 47),
+                        (b &gt;= 58 &amp;&amp; b &lt;= 64),
+                        (b &gt;= 91 &amp;&amp; b &lt;= 96),
+                        (b &gt;= 123 &amp;&amp; b &lt;= 126):
+                        <span class="cov3" title="32">charTable[b] = Symbolchar</span>
+
+                case (b &gt;= 9 &amp;&amp; b &lt;= 13), b == 32:
+                        <span class="cov2" title="6">charTable[b] = Whitespace</span>
+
+                default:
+                        <span class="cov4" title="156">charTable[b] = 0</span>
+                }
+        }
+}
+
+func IsUpper(char byte) bool {
+        <span class="cov10" title="518248">return charTable[char] &amp; Uppercase != 0
+</span>}
+
+func IsLower(char byte) bool {
+        <span class="cov9" title="167492">return charTable[char] &amp; Lowercase != 0
+</span>}
+
+func IsSymbol(char byte) bool {
+        <span class="cov9" title="191180">return charTable[char] &amp; Symbolchar != 0
+</span>}
+
+func isNumber(char byte) bool {
+        <span class="cov8" title="34350">return charTable[char] &amp; Number != 0
+</span>}
+
+func isWhiteSpace(char byte) bool {
+        <span class="cov9" title="385386">return charTable[char] &amp; Whitespace != 0
+</span>}
+
+func isAllowedFileNameByte(char byte) bool {
+        <span class="cov9" title="167492">return IsLower(char) || 
+                        IsUpper(char) || 
+                        isNumber(char) || 
+                        char == CharHyphen || 
+                        char == CharUnderscore || 
+                        char == CharDot
+</span>}
+
+func trimInput(s string) string{
+        <span class="cov7" title="20365">start := 0
+        for start &lt; len(s) &amp;&amp; s[start] == Space </span>{
+                <span class="cov7" title="8932">start++
+</span>        }
+        <span class="cov7" title="20365">end := len(s)
+        for end &gt; start &amp;&amp; s[end-1] == Space </span>{
+                <span class="cov7" title="8670">end--
+</span>        }
+
+        <span class="cov7" title="20365">return s[start:end]</span>
+}
+
+func toLower(s string) string {
+        <span class="cov8" title="40637">hasUpper := false
+        for i := 0; i &lt; len(s); i++ </span>{
+                <span class="cov9" title="308950">if IsUpper(s[i]) </span>{
+                        <span class="cov7" title="14847">hasUpper = true
+                        break</span>
+                }
+        }
+
+        <span class="cov8" title="40637">if !hasUpper </span>{
+                <span class="cov7" title="25790">return s
+</span>        }
+
+        <span class="cov7" title="14847">buf := make([]byte, len(s))
+        for i := 0; i &lt; len(s); i++ </span>{
+                <span class="cov9" title="174948">c := s[i]
+                if IsUpper(c) </span>{
+                        <span class="cov8" title="85818">c |= 32
+</span>                }
+                <span class="cov9" title="174948">buf[i] = c</span>
+        }
+        
+        <span class="cov7" title="14847">return string(buf)</span>
+}
+
+func lenCheck(name string) error {
+        <span class="cov8" title="43870">if name == "" </span>{
+                <span class="cov2" title="8">return ErrEmptyString
+</span>        }
+
+        <span class="cov8" title="43862">return nil</span>
+}
+
+func maxBytes(name string, t Types) error {
+        <span class="cov8" title="43862">length := len(name)
+</span>
+        <span class="cov8" title="43862">if t == File </span>{
+                <span class="cov7" title="20359">if length &gt; int(MaxFileNameBytes) </span>{
+                        <span class="cov1" title="2">return ErrFileNameTooLong
+</span>                }
+        }
+
+        <span class="cov8" title="43860">if t == Mime </span>{
+                <span class="cov7" title="23503">if length &gt; int(MaxMIMEbytes) </span>{
+                        <span class="cov1" title="1">return ErrMIMEToLong
+</span>                }
+        }
+
+        <span class="cov8" title="43859">return nil</span>
+}
+
+func isAllowedMIMESymbol(b byte) bool {
+        <span class="cov6" title="3229">switch b </span>{
+                case CharPlus, CharHyphen, CharUnderscore, CharDot, CharHash, CharMod, CharAnd, CharQuote:
+                        <span class="cov2" title="12">return  true</span>
+        }
+
+        <span class="cov6" title="3217">return  false</span>
+}
+
+func isAllowedImageExtension(extension string) bool {
+        <span class="cov7" title="10692">return strings.EqualFold(extension, ".jpg") ||
+                strings.EqualFold(extension, ".jpeg") ||
+                strings.EqualFold(extension, ".png") ||
+                strings.EqualFold(extension, ".webp")
+</span>}
+
+
+func mimeMatchesExtension(mime string, extension string) bool {
+        <span class="cov0" title="0">switch mime </span>{
+        case "image/jpeg":
+                <span class="cov0" title="0">return strings.EqualFold(extension, ".jpg") ||
+                        strings.EqualFold(extension, ".jpeg")</span>
+
+        case "image/png":
+                <span class="cov0" title="0">return strings.EqualFold(extension, ".png")</span>
+
+        case "image/webp":
+                <span class="cov0" title="0">return strings.EqualFold(extension, ".webp")</span>
+
+        default:
+                <span class="cov0" title="0">return false</span>
+        }
+}
+
+
+func isReservedWindowsDeviceName(baseName string) bool {
+        <span class="cov7" title="10707">if strings.EqualFold(baseName, "CON") ||
+                strings.EqualFold(baseName, "PRN") ||
+                strings.EqualFold(baseName, "AUX") ||
+                strings.EqualFold(baseName, "NUL") ||
+                strings.EqualFold(baseName, "CLOCK$") ||
+                strings.EqualFold(baseName, "CONIN$") ||
+                strings.EqualFold(baseName, "CONOUT$") </span>{
+                <span class="cov3" title="22">return true
+</span>        }
+
+        <span class="cov7" title="10685">if len(baseName) == 4 </span>{
+                <span class="cov1" title="2">prefix := baseName[:3]
+                digit := baseName[3]
+</span>
+                <span class="cov1" title="2">if digit &gt;= '1' &amp;&amp; digit &lt;= '9' &amp;&amp;
+                        (strings.EqualFold(prefix, "COM") ||
+                                strings.EqualFold(prefix, "LPT")) </span>{
+                        <span class="cov1" title="1">return true
+</span>                }
+        }
+
+        <span class="cov7" title="10684">return false</span>
+}
+
+func containsNonASCIIAllowed(value string) error {
+        <span class="cov8" title="43859">for i := 0; i &lt; len(value); i++ </span>{
+                <span class="cov9" title="449935">if charTable[value[i]] == 0 || value[i] &gt; MaxASCIIChar </span>{
+                        <span class="cov6" title="3222">return ErrForbbiden
+</span>                }
+        }
+
+        <span class="cov8" title="40637">return nil</span>
+}
+
+func baseCharCheck(input string, t Types) error {
+        <span class="cov8" title="43870">if err := lenCheck(input); err != nil </span>{
+                <span class="cov2" title="8">return err
+</span>        }
+
+        <span class="cov8" title="43862">if err := maxBytes(input, t); err != nil </span>{
+                <span class="cov1" title="3">return err
+</span>        }
+
+        <span class="cov8" title="43859">if err := containsNonASCIIAllowed(input); err != nil </span>{
+                <span class="cov6" title="3222">return err
+</span>        }
+
+        <span class="cov8" title="40637">return nil</span>
+}
+
+func validateMetadataConsistency( mime string, fileName string ) error {
+        <span class="cov0" title="0">dotIndex := strings.LastIndexByte(fileName, CharDot)
+</span>
+        <span class="cov0" title="0">if dotIndex &lt;= 0 || dotIndex == len(fileName)-1 </span>{
+                <span class="cov0" title="0">return ErrInvalidFileName
+</span>        }
+
+        <span class="cov0" title="0">extension := fileName[dotIndex:]
+</span>
+        <span class="cov0" title="0">if !mimeMatchesExtension(mime, extension) </span>{
+                <span class="cov0" title="0">return ErrMIMEFormatMismatch
+</span>        }
+
+        <span class="cov0" title="0">return nil</span>
+}</pre>
+		
+		<pre class="file" id="file1" style="display: none">
+package intake
+
+import "strings"
+
+func NormalizeFileName(name string) (string, error) {
+        <span class="cov8" title="20365">name = trimInput(name)
+</span>
+        <span class="cov8" title="20365">if err := baseCharCheck(name, File); err != nil </span>{
+                <span class="cov6" title="3225">return "", err
+</span>        }
+
+        <span class="cov8" title="17140">name = toLower(name)
+</span>
+        <span class="cov8" title="17140">name = strings.ReplaceAll( name, string(Space), string(CharUnderscore))
+</span>
+        <span class="cov8" title="17140">if err := validateFileName(name); err != nil </span>{
+                <span class="cov7" title="6463">return "", err
+</span>        }
+
+        <span class="cov7" title="10677">return name, nil</span>
+}
+
+func NormalizeMIME(mime string) (string, error) {
+        <span class="cov8" title="23505">if err := baseCharCheck(mime, Mime); err != nil </span>{
+                <span class="cov2" title="8">return "", err
+</span>        }
+
+        <span class="cov8" title="23497">mime = toLower(mime)
+</span>
+        <span class="cov8" title="23497">if err := validateMIME(mime); err != nil </span>{
+                <span class="cov7" title="6433">return "", err
+</span>        }
+
+        <span class="cov8" title="17064">if !strings.HasPrefix(mime, "image/") </span>{
+                <span class="cov2" title="5">return "", ErrMIMEFormatMismatch
+</span>        }
+
+        <span class="cov8" title="17059">subType := strings.TrimPrefix(mime, "image/")
+</span>
+        <span class="cov8" title="17059">var canonicalMIME string
+</span>
+        <span class="cov8" title="17059">switch subType </span>{
+        case "jpeg", "jpg":
+                <span class="cov7" title="7425">canonicalMIME = "image/jpeg"</span>
+
+        case "png":
+                <span class="cov6" title="3209">canonicalMIME = "image/png"</span>
+
+        case "webp":
+                <span class="cov6" title="3208">canonicalMIME = "image/webp"</span>
+
+        default:
+                <span class="cov6" title="3217">return "", ErrMIMEFormatMismatch</span>
+        }
+
+        <span class="cov7" title="13842">return canonicalMIME, nil</span>
+}
+
+func NormalizeImageMetadata( mime string, fileName string ) (string, string, error) {
+        <span class="cov0" title="0">canonicalMIME, err := NormalizeMIME(mime)
+        if err != nil </span>{
+                <span class="cov0" title="0">return "", "", err
+</span>        }
+
+        <span class="cov0" title="0">normalizedFileName, err := NormalizeFileName(fileName)
+        if err != nil </span>{
+                <span class="cov0" title="0">return "", "", err
+</span>        }
+
+        <span class="cov0" title="0">if err := validateMetadataConsistency( canonicalMIME, normalizedFileName ); err != nil </span>{
+                <span class="cov0" title="0">return "", "", err
+</span>        }
+
+        <span class="cov0" title="0">return normalizedFileName, canonicalMIME, nil</span>
+}
+
+func validateFileName(name string) error {
+        <span class="cov8" title="17140">dotIndex := -1
+        dotCount := 0
+</span>
+        <span class="cov8" title="17140">for i := 0; i &lt; len(name); i++ </span>{
+                <span class="cov9" title="167505">char := name[i]
+</span>
+                <span class="cov9" title="167505">switch </span>{
+
+                case isWhiteSpace(char):
+                        <span class="cov0" title="0">return ErrForbbiden</span>
+
+                case !isAllowedFileNameByte(char):
+                        <span class="cov2" title="13">return ErrForbbiden</span>
+                }
+
+                i<span class="cov6" title="3222">f char == CharDot {</span>
+                        dotCount++
+                        dotIndex = i
+                <span class="cov9" title="164270">}
+</span>        }<span class="cov8" title="23528">
+
+</span>        if dotCount != 1 {
+                return ErrInvalidFileName
+        }
+<span class="cov7" title="13905">
+</span>        i<span class="cov6" title="3210">f dotIndex == 0 {
+</span>                return ErrForbbiden
+        }
+<span class="cov7" title="10695">
+</span>        i<span class="cov1" title="2">f dotIndex == len(name)-1 {
+</span>                return ErrInvalidFileName
+        }
+<span class="cov7" title="10693">
+</span>        b<span class="cov1" title="1">aseName := name[:dotIndex]
+</span>        extension := name[dotIndex:]
+
+        <span class="cov7" title="10692">if !isAllowedImageExtension(extension) {
+                return ErrInvalidFileName
+</span>        }
+<span class="cov7" title="10692">
+</span>        i<span class="cov2" title="4">f isReservedWindowsDeviceName(baseName) {
+</span>                return ErrForbbiden
+        }
+<span class="cov7" title="10688">
+</span>        r<span class="cov2" title="11">eturn nil
+</span>}
+
+f<span class="cov7" title="10677">unc valida</span>teMIME(mime string) error {
+        slashCount := 0
+
+        for i := 0; i &lt; len(mime); i++ {
+        <span class="cov8" title="23497">        char := mime[i]
+</span>
+        <span class="cov8" title="23497">        if char &gt; MaxASCIIChar ||
+</span>                <span class="cov10" title="217881">        charTable[char] == 0 ||
+</span>                        isWhiteSpace(char) {
+                <span class="cov10" title="217881">        return ErrForbbiden
+                }
+
+</span>                i<span class="cov6" title="3208">f char == CharSlash {
+</span>                        slashCount++
+
+                <span class="cov9" title="214673">        if slashCount &gt; 1 ||</span> i == 0 || i == len(mime)-1 {
+                        <span class="cov8" title="23493">        return ErrForbbiden
+</span>                        }
+
+</span>                        c<span class="cov2" title="7">ontinue
+</span>                }
+
+                i<span class="cov8" title="23486">f IsSymb</span>ol(char) &amp;&amp; !isAllowedMIMESymbol(char) {
+                        return ErrForbbiden
+                }
+        }<span class="cov9" title="191180">
+</span>
+</span>        if slashCount != 1 {
+                return ErrForbbiden
+        }
+<span class="cov8" title="17065">
+</span>        r<span class="cov1" title="1">eturn nil
+</span>}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>

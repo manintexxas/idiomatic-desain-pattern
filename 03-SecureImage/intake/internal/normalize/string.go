@@ -2,7 +2,7 @@ package normalize
 
 import (
 		"strings"
-		i "03-SecureImage/intake"
+		in "03-SecureImage/intake"
 )
 
 func trims(s string) string {
@@ -54,7 +54,7 @@ func lower(s string) string {
 
 func length(name string) error {
 	if name == "" {
-		return i.ErrEmptyMetadata
+		return in.ErrEmptyMetadata
 	}
 
 	return nil
@@ -65,13 +65,13 @@ func maxLen(name string, t Types) error {
 
 	if t == File {
 		if length > MaxFileNameBytes {
-			return i.ErrFileNameTooLong
+			return in.ErrFileNameTooLong
 		}
 	}
 
 	if t == Mime {
 		if length > MaxMIMEbytes {
-			return i.ErrMIMETooLong
+			return in.ErrMIMETooLong
 		}
 	}
 
