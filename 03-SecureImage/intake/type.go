@@ -1,6 +1,9 @@
 package intake
 
-type ImageFormat string
+type (
+	ImageFormat string
+	Status uint8
+)
 
 const (
 	FormatUnknown	ImageFormat = ""
@@ -8,6 +11,12 @@ const (
 	FormatJPG		ImageFormat = "jpg"
 	FormatPNG		ImageFormat = "png"
 	FormatWebP		ImageFormat = "webp"
+)
+
+const (
+	PASS 	Status = 1 << iota
+	FLAG
+	REJECT
 )
 
 var ext = [4]string{"jpg", "jpeg", "png", "webp"}
