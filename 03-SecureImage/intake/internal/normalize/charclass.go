@@ -1,19 +1,6 @@
 package normalize
 
-type (
-	Flag  uint8
-	Types uint8
-)
-
-var charTable [256]Flag
-
-const (
-	Uppercase	Flag = 1 << iota
-	Lowercase
-	Symbolchar
-	Whitespace
-	Number
-)
+type Types uint8
 
 const (
 	Mime Types = 1 << iota
